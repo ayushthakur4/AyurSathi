@@ -19,11 +19,20 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#0D1F1C"
-      }
+      },
+      "package": "com.ayushthakur4.ayursaathiapp"
     },
     "web": {
       "favicon": "./assets/icon.png"
     },
-    "plugins": ["expo-asset"]
+    "plugins": [
+      "expo-asset",
+      "expo-font"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "d84ba0bb-41a0-4068-a65c-2e47139a6bca"
+      }
+    }
   }
 }

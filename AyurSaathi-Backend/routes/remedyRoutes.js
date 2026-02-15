@@ -72,9 +72,10 @@ const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 const generateAIResponse = async (disease, retries = 3) => {
   const model = genAI.getGenerativeModel({
-    model: "gemini-2.0-flash",
+    model: "gemini-flash-latest",
     generationConfig: { responseMimeType: "application/json" }
   });
+  console.log('Generating AI response using model: gemini-flash-latest');
 
   const prompt = `You are an expert in Ayurveda, Yoga, and traditional Indian wellness practices.
 
