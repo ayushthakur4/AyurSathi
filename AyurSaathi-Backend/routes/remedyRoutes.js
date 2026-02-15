@@ -24,8 +24,8 @@ const MOCK_RESPONSES = {
       }
     ],
     yoga: [
-      { asanaName: 'Bhujangasana', howToDo: ['Lie face down', 'Place palms under shoulders', 'Press up lifting chest', 'Hold 15-30 seconds'], duration: '5-10 min' },
-      { asanaName: 'Kapalabhati', howToDo: ['Sit comfortably', 'Inhale deeply', 'Exhale forcefully through nose', 'Repeat 20-30 times'], duration: '2-3 min' }
+      { asanaName: 'Bhujangasana', howToDo: ['Lie face down', 'Place palms under shoulders', 'Press up lifting chest', 'Hold 15-30 seconds'], duration: '5-10 min', imageKeyword: 'cobra pose yoga', youtubeSearchQuery: 'Bhujangasana cobra pose yoga tutorial' },
+      { asanaName: 'Kapalabhati', howToDo: ['Sit comfortably', 'Inhale deeply', 'Exhale forcefully through nose', 'Repeat 20-30 times'], duration: '2-3 min', imageKeyword: 'kapalabhati pranayama breathing', youtubeSearchQuery: 'Kapalabhati pranayama breathing exercise tutorial' }
     ],
     doctorAdvice: 'Consult a doctor if fever persists beyond 3 days or symptoms worsen.'
   },
@@ -40,7 +40,7 @@ const MOCK_RESPONSES = {
       }
     ],
     yoga: [
-      { asanaName: 'Shavasana', howToDo: ['Lie flat on back', 'Close eyes', 'Relax all muscles', 'Breathe naturally'], duration: '15-20 min' }
+      { asanaName: 'Shavasana', howToDo: ['Lie flat on back', 'Close eyes', 'Relax all muscles', 'Breathe naturally'], duration: '15-20 min', imageKeyword: 'shavasana corpse pose', youtubeSearchQuery: 'Shavasana corpse pose yoga tutorial' }
     ],
     doctorAdvice: 'Seek medical attention if fever exceeds 103°F or lasts more than 3 days.'
   },
@@ -58,7 +58,9 @@ const MOCK_RESPONSES = {
       {
         asanaName: 'Nadi Shodhana',
         howToDo: ['Sit in comfortable pose', 'Close right nostril', 'Inhale through left', 'Close left, exhale through right', 'Alternate nostrils'],
-        duration: '5-10 min'
+        duration: '5-10 min',
+        imageKeyword: 'alternate nostril breathing yoga',
+        youtubeSearchQuery: 'Nadi Shodhana alternate nostril breathing tutorial'
       }
     ],
     doctorAdvice: 'Consult a doctor for persistent or severe headaches.'
@@ -99,7 +101,9 @@ Return ONLY valid JSON with this exact schema:
     {
       "asanaName": "Name of the asana or pranayama",
       "howToDo": ["Step 1", "Step 2", "Step 3"],
-      "duration": "recommended duration"
+      "duration": "recommended duration",
+      "imageKeyword": "short 2-3 word English keyword for this yoga pose suitable for image search e.g. cobra pose yoga",
+      "youtubeSearchQuery": "YouTube search query for this yoga pose e.g. Bhujangasana cobra pose yoga tutorial"
     }
   ],
   "doctorAdvice": "When to consult a doctor for this condition"
@@ -149,8 +153,8 @@ const FALLBACK_MOCK_RESPONSES = {
       }
     ],
     yoga: [
-      { asanaName: 'Bhujangasana (Cobra Pose)', howToDo: ['Lie face down on mat', 'Place palms under shoulders', 'Inhale and press up, lifting chest', 'Keep elbows slightly bent', 'Hold for 15-30 seconds'], duration: '5-10 min' },
-      { asanaName: 'Kapalabhati Pranayama', howToDo: ['Sit in comfortable position with straight spine', 'Take a deep breath in', 'Exhale forcefully through nose, pulling navel in', 'Let inhalation happen passively', 'Start with 20 rounds, increase gradually'], duration: '3-5 min' }
+      { asanaName: 'Bhujangasana (Cobra Pose)', howToDo: ['Lie face down on mat', 'Place palms under shoulders', 'Inhale and press up, lifting chest', 'Keep elbows slightly bent', 'Hold for 15-30 seconds'], duration: '5-10 min', imageKeyword: 'cobra pose yoga', youtubeSearchQuery: 'Bhujangasana cobra pose yoga tutorial' },
+      { asanaName: 'Kapalabhati Pranayama', howToDo: ['Sit in comfortable position with straight spine', 'Take a deep breath in', 'Exhale forcefully through nose, pulling navel in', 'Let inhalation happen passively', 'Start with 20 rounds, increase gradually'], duration: '3-5 min', imageKeyword: 'kapalabhati pranayama breathing', youtubeSearchQuery: 'Kapalabhati pranayama breathing exercise tutorial' }
     ],
     doctorAdvice: 'Consult a doctor if fever exceeds 102°F, symptoms persist beyond 7 days, or you experience difficulty breathing.'
   },
@@ -175,9 +179,9 @@ const FALLBACK_MOCK_RESPONSES = {
       }
     ],
     yoga: [
-      { asanaName: 'Balasana (Child Pose)', howToDo: ['Kneel on mat with big toes touching', 'Sit back on heels', 'Bend forward, extending arms ahead', 'Rest forehead on mat', 'Breathe deeply, hold for 1-3 minutes'], duration: '5-10 min' },
-      { asanaName: 'Nadi Shodhana (Alternate Nostril Breathing)', howToDo: ['Sit comfortably with spine straight', 'Close right nostril with thumb', 'Inhale through left nostril for 4 counts', 'Close left nostril, open right', 'Exhale through right for 4 counts', 'Inhale right, exhale left — one cycle'], duration: '5-10 min' },
-      { asanaName: 'Shavasana (Corpse Pose)', howToDo: ['Lie flat on back', 'Arms at sides, palms up', 'Close eyes and relax every body part', 'Focus on slow deep breathing', 'Stay for at least 5 minutes'], duration: '10-15 min' }
+      { asanaName: 'Balasana (Child Pose)', howToDo: ['Kneel on mat with big toes touching', 'Sit back on heels', 'Bend forward, extending arms ahead', 'Rest forehead on mat', 'Breathe deeply, hold for 1-3 minutes'], duration: '5-10 min', imageKeyword: 'child pose yoga', youtubeSearchQuery: 'Balasana child pose yoga tutorial' },
+      { asanaName: 'Nadi Shodhana (Alternate Nostril Breathing)', howToDo: ['Sit comfortably with spine straight', 'Close right nostril with thumb', 'Inhale through left nostril for 4 counts', 'Close left nostril, open right', 'Exhale through right for 4 counts', 'Inhale right, exhale left — one cycle'], duration: '5-10 min', imageKeyword: 'alternate nostril breathing yoga', youtubeSearchQuery: 'Nadi Shodhana alternate nostril breathing tutorial' },
+      { asanaName: 'Shavasana (Corpse Pose)', howToDo: ['Lie flat on back', 'Arms at sides, palms up', 'Close eyes and relax every body part', 'Focus on slow deep breathing', 'Stay for at least 5 minutes'], duration: '10-15 min', imageKeyword: 'shavasana corpse pose', youtubeSearchQuery: 'Shavasana corpse pose yoga tutorial' }
     ],
     doctorAdvice: 'If stress is accompanied by persistent anxiety, insomnia, chest pain, or depression lasting more than 2 weeks, seek professional mental health support.'
   },
@@ -202,8 +206,8 @@ const FALLBACK_MOCK_RESPONSES = {
       }
     ],
     yoga: [
-      { asanaName: 'Vajrasana (Thunderbolt Pose)', howToDo: ['Kneel on mat', 'Sit back on your heels', 'Keep spine straight, hands on thighs', 'Breathe normally', 'Sit for 5-10 minutes after meals'], duration: '5-10 min' },
-      { asanaName: 'Pawanmuktasana (Wind-Relieving Pose)', howToDo: ['Lie on back', 'Bring right knee to chest', 'Clasp hands around knee and press', 'Lift head towards knee', 'Hold 15-30 seconds, switch legs'], duration: '5 min' }
+      { asanaName: 'Vajrasana (Thunderbolt Pose)', howToDo: ['Kneel on mat', 'Sit back on your heels', 'Keep spine straight, hands on thighs', 'Breathe normally', 'Sit for 5-10 minutes after meals'], duration: '5-10 min', imageKeyword: 'vajrasana thunderbolt pose', youtubeSearchQuery: 'Vajrasana thunderbolt pose yoga tutorial' },
+      { asanaName: 'Pawanmuktasana (Wind-Relieving Pose)', howToDo: ['Lie on back', 'Bring right knee to chest', 'Clasp hands around knee and press', 'Lift head towards knee', 'Hold 15-30 seconds, switch legs'], duration: '5 min', imageKeyword: 'wind relieving pose yoga', youtubeSearchQuery: 'Pawanmuktasana wind relieving pose yoga tutorial' }
     ],
     doctorAdvice: 'Consult a gastroenterologist if you experience persistent bloating, blood in stool, unexplained weight loss, or severe abdominal pain.'
   },
@@ -223,9 +227,9 @@ const FALLBACK_MOCK_RESPONSES = {
       }
     ],
     yoga: [
-      { asanaName: 'Marjariasana (Cat-Cow Pose)', howToDo: ['Get on hands and knees (tabletop position)', 'Inhale: drop belly, lift head (cow)', 'Exhale: round spine, tuck chin (cat)', 'Move slowly with breath', 'Repeat 10-15 times'], duration: '5 min' },
-      { asanaName: 'Bhujangasana (Cobra Pose)', howToDo: ['Lie face down', 'Place palms beside chest', 'Inhale and slowly lift upper body', 'Keep elbows slightly bent', 'Hold for 15-30 seconds'], duration: '5 min' },
-      { asanaName: 'Setu Bandhasana (Bridge Pose)', howToDo: ['Lie on back, bend knees', 'Place feet hip-width apart', 'Press feet down, lift hips up', 'Clasp hands under body', 'Hold for 30 seconds to 1 minute'], duration: '5 min' }
+      { asanaName: 'Marjariasana (Cat-Cow Pose)', howToDo: ['Get on hands and knees (tabletop position)', 'Inhale: drop belly, lift head (cow)', 'Exhale: round spine, tuck chin (cat)', 'Move slowly with breath', 'Repeat 10-15 times'], duration: '5 min', imageKeyword: 'cat cow pose yoga', youtubeSearchQuery: 'Marjariasana cat cow pose yoga tutorial' },
+      { asanaName: 'Bhujangasana (Cobra Pose)', howToDo: ['Lie face down', 'Place palms beside chest', 'Inhale and slowly lift upper body', 'Keep elbows slightly bent', 'Hold for 15-30 seconds'], duration: '5 min', imageKeyword: 'cobra pose yoga', youtubeSearchQuery: 'Bhujangasana cobra pose yoga tutorial' },
+      { asanaName: 'Setu Bandhasana (Bridge Pose)', howToDo: ['Lie on back, bend knees', 'Place feet hip-width apart', 'Press feet down, lift hips up', 'Clasp hands under body', 'Hold for 30 seconds to 1 minute'], duration: '5 min', imageKeyword: 'bridge pose yoga', youtubeSearchQuery: 'Setu Bandhasana bridge pose yoga tutorial' }
     ],
     doctorAdvice: 'See a doctor if back pain is accompanied by numbness in legs, loss of bladder control, or persists beyond 2 weeks despite rest.'
   },
@@ -250,8 +254,8 @@ const FALLBACK_MOCK_RESPONSES = {
       }
     ],
     yoga: [
-      { asanaName: 'Viparita Karani (Legs Up the Wall)', howToDo: ['Sit with one side against a wall', 'Swing legs up the wall as you lie back', 'Rest arms at sides', 'Close eyes and breathe deeply', 'Stay for 5-10 minutes'], duration: '5-10 min' },
-      { asanaName: 'Yoga Nidra (Yogic Sleep)', howToDo: ['Lie in Shavasana position', 'Close eyes, relax body part by part', 'Follow guided body scan meditation', 'Maintain awareness while deeply relaxed', 'Practice for 15-20 minutes'], duration: '15-20 min' }
+      { asanaName: 'Viparita Karani (Legs Up the Wall)', howToDo: ['Sit with one side against a wall', 'Swing legs up the wall as you lie back', 'Rest arms at sides', 'Close eyes and breathe deeply', 'Stay for 5-10 minutes'], duration: '5-10 min', imageKeyword: 'legs up wall pose yoga', youtubeSearchQuery: 'Viparita Karani legs up the wall pose yoga tutorial' },
+      { asanaName: 'Yoga Nidra (Yogic Sleep)', howToDo: ['Lie in Shavasana position', 'Close eyes, relax body part by part', 'Follow guided body scan meditation', 'Maintain awareness while deeply relaxed', 'Practice for 15-20 minutes'], duration: '15-20 min', imageKeyword: 'yoga nidra relaxation', youtubeSearchQuery: 'Yoga Nidra guided yogic sleep meditation' }
     ],
     doctorAdvice: 'Consult a sleep specialist if insomnia persists for more than 3 weeks, or if you experience daytime fatigue affecting daily activities.'
   },
@@ -271,8 +275,8 @@ const FALLBACK_MOCK_RESPONSES = {
       }
     ],
     yoga: [
-      { asanaName: 'Sarvangasana (Shoulder Stand)', howToDo: ['Lie on back', 'Lift legs and hips overhead', 'Support back with hands', 'Keep body straight', 'Hold for 30 seconds to 2 minutes'], duration: '3-5 min' },
-      { asanaName: 'Matsyasana (Fish Pose)', howToDo: ['Lie on back', 'Place hands under hips', 'Lift chest and arch back', 'Rest crown of head on floor', 'Hold for 15-30 seconds'], duration: '3-5 min' }
+      { asanaName: 'Sarvangasana (Shoulder Stand)', howToDo: ['Lie on back', 'Lift legs and hips overhead', 'Support back with hands', 'Keep body straight', 'Hold for 30 seconds to 2 minutes'], duration: '3-5 min', imageKeyword: 'shoulder stand yoga pose', youtubeSearchQuery: 'Sarvangasana shoulder stand yoga tutorial' },
+      { asanaName: 'Matsyasana (Fish Pose)', howToDo: ['Lie on back', 'Place hands under hips', 'Lift chest and arch back', 'Rest crown of head on floor', 'Hold for 15-30 seconds'], duration: '3-5 min', imageKeyword: 'fish pose yoga', youtubeSearchQuery: 'Matsyasana fish pose yoga tutorial' }
     ],
     doctorAdvice: 'Consult a dermatologist for persistent skin issues, rashes that spread, or skin conditions not improving with home remedies after 2 weeks.'
   },
@@ -297,8 +301,8 @@ const FALLBACK_MOCK_RESPONSES = {
       }
     ],
     yoga: [
-      { asanaName: 'Trikonasana (Triangle Pose)', howToDo: ['Stand with feet wide apart', 'Turn right foot out 90 degrees', 'Extend arms at shoulder height', 'Bend to the right, touch right ankle', 'Look up at left hand, hold 30 seconds'], duration: '5 min' },
-      { asanaName: 'Virabhadrasana (Warrior Pose)', howToDo: ['Stand with feet 3-4 feet apart', 'Turn right foot out, bend right knee', 'Keep left leg straight', 'Raise arms overhead', 'Hold for 30 seconds, switch sides'], duration: '5-10 min' }
+      { asanaName: 'Trikonasana (Triangle Pose)', howToDo: ['Stand with feet wide apart', 'Turn right foot out 90 degrees', 'Extend arms at shoulder height', 'Bend to the right, touch right ankle', 'Look up at left hand, hold 30 seconds'], duration: '5 min', imageKeyword: 'triangle pose yoga', youtubeSearchQuery: 'Trikonasana triangle pose yoga tutorial' },
+      { asanaName: 'Virabhadrasana (Warrior Pose)', howToDo: ['Stand with feet 3-4 feet apart', 'Turn right foot out, bend right knee', 'Keep left leg straight', 'Raise arms overhead', 'Hold for 30 seconds, switch sides'], duration: '5-10 min', imageKeyword: 'warrior pose yoga', youtubeSearchQuery: 'Virabhadrasana warrior pose yoga tutorial' }
     ],
     doctorAdvice: 'Consult an orthopedic specialist if joint pain is severe, accompanied by swelling, redness, or limits your mobility significantly.'
   },
@@ -318,8 +322,8 @@ const FALLBACK_MOCK_RESPONSES = {
       }
     ],
     yoga: [
-      { asanaName: 'Simhasana (Lion Pose)', howToDo: ['Kneel and sit on heels', 'Place palms on knees', 'Open mouth wide, stick tongue out', 'Exhale with a roaring sound', 'Repeat 5-6 times'], duration: '3-5 min' },
-      { asanaName: 'Ustrasana (Camel Pose)', howToDo: ['Kneel on mat, knees hip-width apart', 'Place hands on lower back', 'Slowly arch backwards', 'Reach for heels if comfortable', 'Hold 15-30 seconds'], duration: '3-5 min' }
+      { asanaName: 'Simhasana (Lion Pose)', howToDo: ['Kneel and sit on heels', 'Place palms on knees', 'Open mouth wide, stick tongue out', 'Exhale with a roaring sound', 'Repeat 5-6 times'], duration: '3-5 min', imageKeyword: 'lion pose yoga', youtubeSearchQuery: 'Simhasana lion pose yoga tutorial' },
+      { asanaName: 'Ustrasana (Camel Pose)', howToDo: ['Kneel on mat, knees hip-width apart', 'Place hands on lower back', 'Slowly arch backwards', 'Reach for heels if comfortable', 'Hold 15-30 seconds'], duration: '3-5 min', imageKeyword: 'camel pose yoga', youtubeSearchQuery: 'Ustrasana camel pose yoga tutorial' }
     ],
     doctorAdvice: 'See a doctor if cough persists for more than 2 weeks, produces blood, or is accompanied by chest pain.'
   },
@@ -334,7 +338,7 @@ const FALLBACK_MOCK_RESPONSES = {
       }
     ],
     yoga: [
-      { asanaName: 'Sarvangasana (Shoulder Stand)', howToDo: ['Lie on back', 'Lift legs overhead with hand support on lower back', 'Keep body straight and hold', 'Improves blood circulation to face'], duration: '2-5 min' }
+      { asanaName: 'Sarvangasana (Shoulder Stand)', howToDo: ['Lie on back', 'Lift legs overhead with hand support on lower back', 'Keep body straight and hold', 'Improves blood circulation to face'], duration: '2-5 min', imageKeyword: 'shoulder stand yoga pose', youtubeSearchQuery: 'Sarvangasana shoulder stand yoga tutorial' }
     ],
     doctorAdvice: 'Consult a dermatologist for severe or cystic acne, or if over-the-counter remedies do not work after 4-6 weeks.'
   },
@@ -349,8 +353,8 @@ const FALLBACK_MOCK_RESPONSES = {
       }
     ],
     yoga: [
-      { asanaName: 'Balasana (Child Pose)', howToDo: ['Kneel on mat', 'Bend forward, extending arms', 'Rest forehead on mat', 'Breathe deeply for 1-3 minutes'], duration: '5-10 min' },
-      { asanaName: 'Anulom Vilom (Alternate Nostril Breathing)', howToDo: ['Sit comfortably', 'Close right nostril, inhale left', 'Close left, exhale right', 'Inhale right, exhale left', 'Repeat for 10-15 cycles'], duration: '5-10 min' }
+      { asanaName: 'Balasana (Child Pose)', howToDo: ['Kneel on mat', 'Bend forward, extending arms', 'Rest forehead on mat', 'Breathe deeply for 1-3 minutes'], duration: '5-10 min', imageKeyword: 'child pose yoga', youtubeSearchQuery: 'Balasana child pose yoga tutorial' },
+      { asanaName: 'Anulom Vilom (Alternate Nostril Breathing)', howToDo: ['Sit comfortably', 'Close right nostril, inhale left', 'Close left, exhale right', 'Inhale right, exhale left', 'Repeat for 10-15 cycles'], duration: '5-10 min', imageKeyword: 'anulom vilom pranayama', youtubeSearchQuery: 'Anulom Vilom alternate nostril breathing tutorial' }
     ],
     doctorAdvice: 'Professional therapy is recommended for chronic anxiety. Seek immediate help if anxiety causes panic attacks or interferes with daily life.'
   }
@@ -422,8 +426,8 @@ router.get('/:disease', async (req, res) => {
         }
       ],
       yoga: [
-        { asanaName: 'Pranayama (Deep Breathing)', howToDo: ['Sit comfortably with spine straight', 'Inhale deeply through nose for 4 counts', 'Hold for 4 counts', 'Exhale slowly for 6 counts', 'Repeat 10 times'], duration: '5-10 min' },
-        { asanaName: 'Shavasana (Corpse Pose)', howToDo: ['Lie flat on back', 'Close eyes', 'Relax every muscle', 'Breathe naturally'], duration: '10-15 min' }
+        { asanaName: 'Pranayama (Deep Breathing)', howToDo: ['Sit comfortably with spine straight', 'Inhale deeply through nose for 4 counts', 'Hold for 4 counts', 'Exhale slowly for 6 counts', 'Repeat 10 times'], duration: '5-10 min', imageKeyword: 'pranayama deep breathing', youtubeSearchQuery: 'Pranayama deep breathing exercise tutorial' },
+        { asanaName: 'Shavasana (Corpse Pose)', howToDo: ['Lie flat on back', 'Close eyes', 'Relax every muscle', 'Breathe naturally'], duration: '10-15 min', imageKeyword: 'shavasana corpse pose', youtubeSearchQuery: 'Shavasana corpse pose yoga tutorial' }
       ],
       doctorAdvice: 'Consult a doctor if symptoms persist for more than 3 days or worsen.'
     };

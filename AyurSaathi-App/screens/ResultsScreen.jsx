@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Dimensions, Animated } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Dimensions, Animated, Linking } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { Image } from 'expo-image';
@@ -115,7 +115,7 @@ export default function ResultsScreen({ route, navigation }) {
                 <TouchableOpacity key={index} onPress={() => handleYogaPress(item)} activeOpacity={0.8}>
                   <View style={styles.yogaCard}>
                     <Image
-                      source={{ uri: `https://picsum.photos/seed/${item.asanaName}/400/400` }}
+                      source={{ uri: item.imageKeyword ? `https://source.unsplash.com/400x400/?yoga,${encodeURIComponent(item.imageKeyword)}` : `https://source.unsplash.com/400x400/?yoga,${encodeURIComponent(item.asanaName)}` }}
                       style={styles.yogaImage}
                     />
                     <LinearGradient colors={['transparent', 'rgba(0,0,0,0.85)']} style={styles.yogaGradient} />
@@ -126,6 +126,20 @@ export default function ResultsScreen({ route, navigation }) {
                         <Text style={styles.yogaDuration}>{item.duration}</Text>
                       </View>
                     </View>
+                    {/* YouTube Button */}
+                    {item.youtubeSearchQuery && (
+                      <TouchableOpacity
+                        style={styles.youtubeButton}
+                        onPress={(e) => {
+                          e.stopPropagation && e.stopPropagation();
+                          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                          Linking.openURL(`https://www.youtube.com/results?search_query=${encodeURIComponent(item.youtubeSearchQuery)}`);
+                        }}
+                        activeOpacity={0.8}
+                      >
+                        <Ionicons name="logo-youtube" size={18} color="#FF0000" />
+                      </TouchableOpacity>
+                    )}
                   </View>
                 </TouchableOpacity>
               ))}
@@ -223,6 +237,14 @@ const styles = StyleSheet.create({
   yogaName: { fontSize: 17, fontWeight: '700', color: '#fff' },
   yogaDurationRow: { flexDirection: 'row', alignItems: 'center', marginTop: 5 },
   yogaDuration: { color: '#4ADE80', fontSize: 13, marginLeft: 5, fontWeight: '500' },
+  youtubeButton: {
+    position: 'absolute', top: 10, right: 10,
+    width: 36, height: 36, borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.92)',
+    justifyContent: 'center', alignItems: 'center',
+    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 4,
+    elevation: 5,
+  },
 
   // Remedies
   remedyCard: {

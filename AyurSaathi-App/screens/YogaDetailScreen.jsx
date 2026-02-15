@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from 'react';
-import { View, Text, ScrollView, StyleSheet, Dimensions, Animated } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, Dimensions, Animated, TouchableOpacity, Linking } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { Image } from 'expo-image';
@@ -21,7 +21,7 @@ export default function YogaDetailScreen({ route }) {
     <View style={styles.container}>
       {/* Hero image */}
       <Image
-        source={{ uri: `https://picsum.photos/seed/${yoga.asanaName}/800/800` }}
+        source={{ uri: yoga.imageKeyword ? `https://source.unsplash.com/800x800/?yoga,${encodeURIComponent(yoga.imageKeyword)}` : `https://source.unsplash.com/800x800/?yoga,${encodeURIComponent(yoga.asanaName)}` }}
         style={styles.heroImage}
       />
       <LinearGradient
@@ -68,6 +68,20 @@ export default function YogaDetailScreen({ route }) {
                     </View>
                   ))}
                 </View>
+              )}
+
+              {/* Watch on YouTube Button */}
+              {yoga.youtubeSearchQuery && (
+                <TouchableOpacity
+                  style={styles.youtubeRow}
+                  onPress={() => Linking.openURL(`https://www.youtube.com/results?search_query=${encodeURIComponent(yoga.youtubeSearchQuery)}`)}
+                  activeOpacity={0.8}
+                >
+                  <LinearGradient colors={['#FF0000', '#CC0000']} style={styles.youtubeBtn}>
+                    <Ionicons name="logo-youtube" size={22} color="#fff" />
+                    <Text style={styles.youtubeBtnText}>Watch on YouTube</Text>
+                  </LinearGradient>
+                </TouchableOpacity>
               )}
             </BlurView>
           </View>
@@ -119,4 +133,14 @@ const styles = StyleSheet.create({
   stepLine: { width: 2, flex: 1, backgroundColor: 'rgba(74,222,128,0.2)', marginVertical: 4 },
   stepContent: { flex: 1, paddingLeft: 14, paddingBottom: 24 },
   stepText: { flex: 1, color: 'rgba(255,255,255,0.75)', fontSize: 16, lineHeight: 25 },
+
+  // YouTube
+  youtubeRow: { marginTop: 24 },
+  youtubeBtn: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    paddingVertical: 14, borderRadius: 16,
+    shadowColor: '#FF0000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8,
+    elevation: 6,
+  },
+  youtubeBtnText: { color: '#fff', fontSize: 16, fontWeight: '700', marginLeft: 10 },
 });

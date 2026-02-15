@@ -4,7 +4,7 @@
 
 <h1 align="center">🌿 AyurSaathi</h1>
 <p align="center"><strong>Ancient Wisdom × Modern Care</strong></p>
-<p align="center">An AI-powered Ayurvedic health companion that provides personalized herbal remedies, yoga routines, and wellness advice using the power of Gemini AI.</p>
+<p align="center">An AI-powered Ayurvedic health companion that provides personalized herbal remedies, yoga routines with real pose images & YouTube tutorials, and wellness advice using the power of Gemini AI.</p>
 
 <p align="center">
   <img src="https://img.shields.io/badge/React%20Native-0.76.5-61DAFB?logo=react&logoColor=white" alt="React Native">
@@ -43,7 +43,8 @@ The app draws from **5,000+ years of Ayurvedic wisdom** — a holistic system of
 | ⚡ **Quick Ailments** | One-tap search for 8 common conditions (Headache, Cold, Stress, etc.) |
 | 🤖 **Gemini AI Integration** | AI-generated Ayurvedic treatment plans from Google's Gemini 2.0 Flash |
 | 🧪 **Detailed Remedies** | Full ingredient lists with step-by-step preparation instructions |
-| 🧘 **Yoga Routines** | Personalized yoga/pranayama with difficulty levels and durations |
+| 🧘 **Yoga Routines** | Personalized yoga/pranayama with real pose images and durations |
+| 🎬 **YouTube Tutorials** | One-tap access to YouTube video tutorials for each yoga pose |
 | 💾 **Smart Caching** | In-memory + MongoDB caching for instant repeat lookups |
 | 🎨 **Premium UI** | Dark theme with glassmorphism, animations, and gradient accents |
 | 📴 **Offline Fallback** | Rich local data for common ailments when AI is unavailable |
@@ -129,7 +130,8 @@ AyurSathi/
 - Disease name header with animated badge
 - Health tip card
 - Doctor advice card with "Important" badge
-- Horizontal-scroll yoga cards with image previews
+- Horizontal-scroll yoga cards with **real yoga pose images** (via Unsplash)
+- **YouTube play button** on each yoga card — opens video tutorial
 - Home remedies list with ingredient count
 
 ### 3. Recipe Screen
@@ -138,9 +140,10 @@ AyurSathi/
 - Ingredient count badge
 
 ### 4. Yoga Detail Screen
-- Hero image with gradient overlay
+- **Real yoga pose hero image** with gradient overlay
 - Duration badge
 - Step-by-step instructions with connecting timeline
+- **"Watch on YouTube"** button — opens YouTube search for the pose
 
 ---
 
@@ -201,7 +204,8 @@ npx expo start
 
 ### Base URL
 ```
-http://localhost:5000/api/remedies
+Production: https://ayursathi.onrender.com/api/remedies
+Local:      http://localhost:5000/api/remedies
 ```
 
 ### Endpoints
@@ -231,7 +235,9 @@ Returns an Ayurvedic treatment plan for the specified condition.
     {
       "asanaName": "Nadi Shodhana",
       "howToDo": ["Sit comfortably...", "Close right nostril..."],
-      "duration": "5-10 min"
+      "duration": "5-10 min",
+      "imageKeyword": "alternate nostril breathing yoga",
+      "youtubeSearchQuery": "Nadi Shodhana alternate nostril breathing tutorial"
     }
   ],
   "doctorAdvice": "Consult a doctor for persistent headaches."
