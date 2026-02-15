@@ -5,10 +5,10 @@ import { Platform } from 'react-native';
 // ============================================================
 // After deploying to Render, replace this URL with your actual
 // Render service URL (e.g. https://ayursaathi-backend.onrender.com)
-const PRODUCTION_URL = 'https://ayursaathi-backend.onrender.com/api/remedies';
+const PRODUCTION_URL = 'https://ayursathi.onrender.com/api/remedies';
 
 // For local development, set USE_LOCAL=true and update LOCAL_IP
-const USE_LOCAL = true; // Set to false after deploying to Render
+const USE_LOCAL = false; // Set to true for local development
 const LOCAL_IP = '10.224.57.181';
 
 const getApiUrl = () => {

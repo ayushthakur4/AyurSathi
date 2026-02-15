@@ -33,6 +33,11 @@ mongoose.connect(mongoURI, {
 mongoose.connection.on('disconnected', () => console.log('⚠️ MongoDB disconnected'));
 mongoose.connection.on('reconnected', () => console.log('✅ MongoDB reconnected'));
 
+// Health-check route
+app.get('/', (req, res) => {
+    res.json({ status: 'ok', message: 'AyurSathi API is running 🌿' });
+});
+
 app.use('/api/remedies', remedyRoutes);
 
 const PORT = process.env.PORT || 5000;
