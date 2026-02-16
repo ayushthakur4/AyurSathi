@@ -26,3 +26,4 @@ coverage/
 test_*.js
 verify_*.js
 list_models.js
+list_models_fetch.js

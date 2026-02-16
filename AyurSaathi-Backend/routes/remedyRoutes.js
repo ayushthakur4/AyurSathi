@@ -152,10 +152,10 @@ const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const generateAIResponse = async (disease, retries = 3) => {
   const model = genAI.getGenerativeModel({
-    model: "gemini-flash-latest",
+    model: "gemini-2.5-flash",
     generationConfig: { responseMimeType: "application/json" },
   });
-  console.log("Generating AI response using model: gemini-flash-latest");
+  console.log("Generating AI response using model: gemini-2.5-flash");
 
   const prompt = `You are an expert in Ayurveda, Yoga, and traditional Indian wellness practices.
 
@@ -216,6 +216,7 @@ Return ONLY valid JSON with this exact schema:
         throw new Error("Incomplete AI response - missing required fields");
       }
 
+      console.log("AI response generated and parsed successfully.");
       return parsed;
     } catch (err) {
       console.error(`Gemini attempt ${attempt + 1} failed:`, err.message);

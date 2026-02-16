@@ -17,7 +17,17 @@ app.use(express.json());
 const mongoose = require('mongoose');
 
 // Connect to MongoDB Atlas
-const mongoURI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/ayursaathi';
+// Connect to MongoDB Atlas
+const mongoURI = process.env.MONGODB_URI;
+
+if (!mongoURI) {
+    console.error('❌ MONGODB_URI is not defined in environment variables.');
+    // In production, we want to fail fast. In dev, we might tolerate it but it's risky.
+    if (process.env.NODE_ENV === 'production') {
+        process.exit(1);
+    }
+}
+
 console.log('Connecting to MongoDB...');
 
 mongoose.connect(mongoURI, {
@@ -27,7 +37,7 @@ mongoose.connect(mongoURI, {
     .then(() => console.log('✅ MongoDB Connected successfully'))
     .catch(err => {
         console.error('❌ MongoDB Connection Error:', err.message);
-        console.error('URI used (masked):', mongoURI.replace(/\/\/[^@]+@/, '//<credentials>@'));
+        // Avoid logging full URI with credentials
     });
 
 mongoose.connection.on('disconnected', () => console.log('⚠️ MongoDB disconnected'));
