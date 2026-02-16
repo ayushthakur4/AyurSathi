@@ -9,7 +9,7 @@ const PRODUCTION_URL = 'https://ayursathi.onrender.com/api/remedies';
 
 // For local development, set USE_LOCAL=true and update LOCAL_IP
 const USE_LOCAL = false; // Set to true for local development
-const LOCAL_IP = '10.224.57.181';
+const LOCAL_IP = '192.168.137.146';
 
 const getApiUrl = () => {
     if (USE_LOCAL && __DEV__) {

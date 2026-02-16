@@ -219,6 +219,12 @@ Return ONLY valid JSON with this exact schema:
       return parsed;
     } catch (err) {
       console.error(`Gemini attempt ${attempt + 1} failed:`, err.message);
+
+      // Log safety ratings or other details if available
+      if (err.response && err.response.promptFeedback) {
+        console.error("Safety Ratings:", JSON.stringify(err.response.promptFeedback, null, 2));
+      }
+
       if (
         attempt < retries &&
         (err.message.includes("429") ||
@@ -939,12 +945,17 @@ router.get("/:disease", async (req, res) => {
       return res.json(remediesCache[disease]);
     }
 
-    // 2. Check MongoDB
-    let remedy = await Remedy.findOne({ diseaseName: disease });
-    if (remedy) {
-      console.log("Found in MongoDB");
-      remediesCache[disease] = remedy; // cache it
-      return res.json(remedy);
+    // 2. Check MongoDB (with error handling)
+    try {
+      let remedy = await Remedy.findOne({ diseaseName: disease });
+      if (remedy) {
+        console.log("Found in MongoDB");
+        remediesCache[disease] = remedy; // cache it
+        return res.json(remedy);
+      }
+    } catch (dbError) {
+      console.warn("MongoDB read failed (skipping):", dbError.message);
+      // Continue to AI generation if DB fails
     }
 
     // 3. Try Gemini AI FIRST (primary source for all diseases)
