@@ -82,14 +82,16 @@ const generateAIResponse = async (disease, retries = 3) => {
 A user is seeking Ayurvedic remedies and holistic wellness advice for: "${disease}"
 
 Provide a comprehensive, authentic response with:
-1. A practical health tip specific to this condition
-2. At least 2-3 detailed home remedies with full ingredients and step-by-step preparation
-3. At least 2 yoga asanas/pranayama exercises that help with this condition, with clear instructions
-4. Professional doctor advice about when to seek medical help
+1. An "Ayurvedic Analysis" explaining the Dosha imbalance (Vata/Pitta/Kapha) and why the condition occurs according to Ayurveda.
+2. A practical health tip specific to this condition.
+3. At least 2-3 detailed home remedies with full ingredients and step-by-step preparation.
+4. At least 2 yoga asanas/pranayama exercises that help with this condition, with clear instructions.
+5. Professional doctor advice about when to seek medical help.
 
 Return ONLY valid JSON with this exact schema:
 {
   "diseaseName": "${disease}",
+  "ayurvedicAnalysis": "Explanation of the Dosha imbalance and Ayurvedic perspective on this condition (2-3 sentences)",
   "healthTip": "A specific, actionable health tip for this condition",
   "homeRemedies": [
     {
@@ -117,7 +119,7 @@ Return ONLY valid JSON with this exact schema:
       const parsed = JSON.parse(text);
 
       // Validate the response has the required fields
-      if (!parsed.healthTip || !parsed.homeRemedies || !parsed.yoga || !parsed.doctorAdvice) {
+      if (!parsed.healthTip || !parsed.homeRemedies || !parsed.yoga || !parsed.doctorAdvice || !parsed.ayurvedicAnalysis) {
         throw new Error('Incomplete AI response - missing required fields');
       }
 

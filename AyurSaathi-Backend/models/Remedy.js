@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const remedySchema = new mongoose.Schema({
   diseaseName: { type: String, required: true, lowercase: true },
   healthTip: String,
+  ayurvedicAnalysis: String, // New field for the "thinking" aspect
   homeRemedies: [
     {
       remedyName: String,
@@ -14,7 +15,9 @@ const remedySchema = new mongoose.Schema({
     {
       asanaName: String,
       howToDo: [String],
-      duration: String
+      duration: String,
+      imageKeyword: String, // For Unsplash
+      youtubeSearchQuery: String // For YouTube link
     }
   ],
   doctorAdvice: String

@@ -66,6 +66,26 @@ export default function ResultsScreen({ route, navigation }) {
           <Text style={styles.resultsSubtitle}>Ayurvedic treatment plan</Text>
         </Animated.View>
 
+        {/* ═══ AYURVEDIC ANALYSIS ═══ */}
+        {remedy.ayurvedicAnalysis && (
+          <AnimatedCard delay={50} style={styles.cardWrapper}>
+            <View style={[styles.card, { borderColor: 'rgba(74,222,128,0.3)' }]}>
+              <LinearGradient colors={['rgba(74,222,128,0.05)', 'transparent']} style={StyleSheet.absoluteFill} />
+              <BlurView intensity={40} tint="dark" style={styles.cardBlur}>
+                <View style={styles.cardHeader}>
+                  <View style={styles.cardIconCircle}>
+                    <Ionicons name="sparkles" size={20} color="#4ADE80" />
+                  </View>
+                  <Text style={styles.cardTitle}>Ayurvedic Analysis</Text>
+                </View>
+                <Text style={[styles.cardText, { fontStyle: 'italic', color: '#D1FAE5' }]}>
+                  "{remedy.ayurvedicAnalysis}"
+                </Text>
+              </BlurView>
+            </View>
+          </AnimatedCard>
+        )}
+
         {/* ═══ HEALTH TIP ═══ */}
         {remedy.healthTip && (
           <AnimatedCard delay={100} style={styles.cardWrapper}>
@@ -115,8 +135,10 @@ export default function ResultsScreen({ route, navigation }) {
                 <TouchableOpacity key={index} onPress={() => handleYogaPress(item)} activeOpacity={0.8}>
                   <View style={styles.yogaCard}>
                     <Image
-                      source={{ uri: item.imageKeyword ? `https://source.unsplash.com/400x400/?yoga,${encodeURIComponent(item.imageKeyword)}` : `https://source.unsplash.com/400x400/?yoga,${encodeURIComponent(item.asanaName)}` }}
+                      source={{ uri: `https://source.unsplash.com/400x400/?yoga,${encodeURIComponent(item.imageKeyword || item.asanaName)}` }}
                       style={styles.yogaImage}
+                      contentFit="cover"
+                      transition={500}
                     />
                     <LinearGradient colors={['transparent', 'rgba(0,0,0,0.85)']} style={styles.yogaGradient} />
                     <View style={styles.yogaOverlay}>
@@ -127,19 +149,18 @@ export default function ResultsScreen({ route, navigation }) {
                       </View>
                     </View>
                     {/* YouTube Button */}
-                    {item.youtubeSearchQuery && (
-                      <TouchableOpacity
-                        style={styles.youtubeButton}
-                        onPress={(e) => {
-                          e.stopPropagation && e.stopPropagation();
-                          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                          Linking.openURL(`https://www.youtube.com/results?search_query=${encodeURIComponent(item.youtubeSearchQuery)}`);
-                        }}
-                        activeOpacity={0.8}
-                      >
-                        <Ionicons name="logo-youtube" size={18} color="#FF0000" />
-                      </TouchableOpacity>
-                    )}
+                    <TouchableOpacity
+                      style={styles.youtubeButton}
+                      onPress={(e) => {
+                        e.stopPropagation && e.stopPropagation();
+                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                        const query = item.youtubeSearchQuery || `${item.asanaName} yoga tutorial`;
+                        Linking.openURL(`https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`);
+                      }}
+                      activeOpacity={0.8}
+                    >
+                      <Ionicons name="logo-youtube" size={18} color="#FF0000" />
+                    </TouchableOpacity>
                   </View>
                 </TouchableOpacity>
               ))}
