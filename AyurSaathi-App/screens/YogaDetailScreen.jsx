@@ -1,146 +1,203 @@
-import React, { useRef, useEffect } from 'react';
-import { View, Text, ScrollView, StyleSheet, Dimensions, Animated, TouchableOpacity, Linking } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur';
+import React, { useRef, useEffect, useMemo } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Dimensions, Animated, Linking } from 'react-native';
 import { Image } from 'expo-image';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import { BlurView } from 'expo-blur';
+import { useTheme } from '../context/ThemeContext';
 
-const { width } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
-export default function YogaDetailScreen({ route }) {
+export default function YogaDetailScreen({ route, navigation }) {
+  const { theme, mode } = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
+
   const { yoga } = route.params;
   const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(30)).current;
+  const slideAnim = useRef(new Animated.Value(50)).current;
 
   useEffect(() => {
-    Animated.timing(fadeAnim, { toValue: 1, duration: 700, useNativeDriver: true }).start();
-    Animated.timing(slideAnim, { toValue: 0, duration: 700, useNativeDriver: true }).start();
+    Animated.parallel([
+      Animated.timing(fadeAnim, { toValue: 1, duration: 800, useNativeDriver: true }),
+      Animated.timing(slideAnim, { toValue: 0, duration: 800, useNativeDriver: true }),
+    ]).start();
   }, []);
+
+  const openYouTube = () => {
+    const query = yoga.youtubeSearchQuery || `${yoga.asanaName} yoga tutorial`;
+    Linking.openURL(`https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`);
+  };
 
   return (
     <View style={styles.container}>
-      {/* Hero image */}
-      <Image
-        source={{ uri: yoga.imageKeyword ? `https://source.unsplash.com/800x800/?yoga,${encodeURIComponent(yoga.imageKeyword)}` : `https://source.unsplash.com/800x800/?yoga,${encodeURIComponent(yoga.asanaName)}` }}
-        style={styles.heroImage}
-      />
-      <LinearGradient
-        colors={['transparent', 'rgba(13,31,28,0.6)', '#0D1F1C']}
-        style={styles.heroGradient}
-      />
+      {/* Background Image with Gradient Overlay */}
+      <View style={styles.imageContainer}>
+        <Image
+          source={{ uri: `https://tse4.mm.bing.net/th?q=${encodeURIComponent(yoga.asanaName + ' yoga pose')}&w=800&h=600&c=7&rs=1&p=0` }}
+          style={styles.heroImage}
+          contentFit="cover"
+          transition={200}
+        />
+        <LinearGradient
+          colors={['transparent', theme.background.primary]}
+          style={styles.heroGradient}
+        />
+      </View>
 
+      {/* Content wrapper - scrolling enabled */}
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}>
-          <View style={styles.contentCard}>
-            <BlurView intensity={60} tint="dark" style={styles.cardBlur}>
+        <View style={styles.spacer} />
 
-              {/* Title + Duration */}
-              <Text style={styles.title}>{yoga.asanaName}</Text>
-              <View style={styles.titleUnderline} />
+        <Animated.View style={[styles.contentCard, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
+          {/* 
+            Glassmorphism sheet effect.
+            Using 90 intensity for a solid, premium feel. 
+          */}
+          <BlurView intensity={90} tint={mode === 'dark' ? 'dark' : 'light'} style={styles.blurContainer}>
 
-              {yoga.duration && (
-                <View style={styles.durationBadge}>
-                  <Ionicons name="time" size={16} color="#0D1F1C" />
-                  <Text style={styles.durationText}>{yoga.duration}</Text>
-                </View>
-              )}
+            {/* Header: Title + Duration */}
+            <View style={styles.headerBar}>
+              <View style={styles.pill}>
+                <Ionicons name="body" size={14} color={theme.primary} />
+                <Text style={styles.pillText}>Yoga Asana</Text>
+              </View>
+              <View style={styles.row}>
+                <Ionicons name="time-outline" size={16} color={theme.text.subtext} />
+                <Text style={styles.durationText}>{yoga.duration}</Text>
+              </View>
+            </View>
 
-              {/* Steps */}
-              {yoga.howToDo && yoga.howToDo.length > 0 && (
-                <View style={styles.section}>
-                  <View style={styles.sectionHeaderRow}>
-                    <View style={styles.sectionIconCircle}>
-                      <Ionicons name="fitness" size={20} color="#4ADE80" />
-                    </View>
-                    <Text style={styles.sectionTitle}>How To Do</Text>
-                  </View>
-                  {yoga.howToDo.map((step, index) => (
-                    <View key={index} style={styles.stepRow}>
-                      <View style={styles.stepTimeline}>
-                        <LinearGradient colors={['#4ADE80', '#22C55E']} style={styles.stepDot}>
-                          <Text style={styles.stepDotText}>{index + 1}</Text>
-                        </LinearGradient>
-                        {index < yoga.howToDo.length - 1 && <View style={styles.stepLine} />}
-                      </View>
-                      <View style={styles.stepContent}>
-                        <Text style={styles.stepText}>{step}</Text>
-                      </View>
-                    </View>
-                  ))}
-                </View>
-              )}
+            <Text style={styles.title}>{yoga.asanaName}</Text>
+            <View style={styles.divider} />
 
-              {/* Watch on YouTube Button */}
-              {yoga.youtubeSearchQuery && (
-                <TouchableOpacity
-                  style={styles.youtubeRow}
-                  onPress={() => Linking.openURL(`https://www.youtube.com/results?search_query=${encodeURIComponent(yoga.youtubeSearchQuery)}`)}
-                  activeOpacity={0.8}
-                >
-                  <LinearGradient colors={['#FF0000', '#CC0000']} style={styles.youtubeBtn}>
-                    <Ionicons name="logo-youtube" size={22} color="#fff" />
-                    <Text style={styles.youtubeBtnText}>Watch on YouTube</Text>
-                  </LinearGradient>
-                </TouchableOpacity>
-              )}
-            </BlurView>
-          </View>
+            {/* Steps Section */}
+            <Text style={styles.sectionTitle}>Instructions</Text>
+            <Text style={styles.description}>
+              {yoga.steps || "Follow the video guidance for best results."}
+            </Text>
+
+            {/* Benefits Section */}
+            <Text style={styles.sectionTitle}>Benefits</Text>
+            <Text style={styles.description}>
+              {yoga.benefits || "Promotes flexibility and mindfulness."}
+            </Text>
+
+            {/* Watch Video Button */}
+            <TouchableOpacity style={styles.watchButton} onPress={openYouTube} activeOpacity={0.7}>
+              <Ionicons name="logo-youtube" size={24} color="#FF0000" />
+              <Text style={styles.watchButtonText}>Watch Tutorial</Text>
+            </TouchableOpacity>
+
+            {/* Practice Button - The main call to action */}
+            <TouchableOpacity style={styles.practiceButton} activeOpacity={0.8} onPress={() => alert("Marked as practiced!")}>
+              <LinearGradient
+                colors={[theme.primary, theme.primaryDark]}
+                style={styles.gradientButton}
+              >
+                <Text style={styles.buttonText}>Start Practice</Text>
+                <Ionicons name="checkmark-circle" size={24} color="#FFF" style={{ marginLeft: 8 }} />
+              </LinearGradient>
+            </TouchableOpacity>
+
+          </BlurView>
         </Animated.View>
       </ScrollView>
-    </View>
+
+      {/* Back Button (Absolute) */}
+      <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+        <BlurView intensity={50} tint={mode === 'dark' ? 'dark' : 'light'} style={styles.backButtonBlur}>
+          <Ionicons name="arrow-back" size={24} color={theme.text.header} />
+        </BlurView>
+      </TouchableOpacity>
+    </View >
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0D1F1C' },
-  heroImage: { width: width, height: 380, position: 'absolute', top: 0 },
-  heroGradient: { height: 380, position: 'absolute', top: 0, width: width },
-  scrollContent: { paddingTop: 300, paddingHorizontal: 20, paddingBottom: 40 },
+const createStyles = (theme) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: theme.background.primary },
+  imageContainer: { width: width, height: height * 0.5, position: 'absolute', top: 0 },
+  heroImage: { width: '100%', height: '100%' },
+  heroGradient: { position: 'absolute', bottom: 0, left: 0, right: 0, height: '60%' },
+
+  scrollContent: { paddingBottom: 40 },
+  spacer: { height: height * 0.35 },
 
   contentCard: {
-    borderRadius: 26, overflow: 'hidden',
-    borderWidth: 1, borderColor: 'rgba(74,222,128,0.1)',
-    shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.3, shadowRadius: 16,
-    elevation: 10,
+    marginHorizontal: 20,
+    borderRadius: 30,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: theme.border,
+    backgroundColor: theme.glass,
   },
-  cardBlur: { padding: 24 },
+  blurContainer: { padding: 24 },
 
-  title: { fontSize: 32, fontWeight: '800', color: '#fff', marginBottom: 10 },
-  titleUnderline: { width: 40, height: 3, backgroundColor: '#4ADE80', borderRadius: 2, marginBottom: 16 },
-
+  headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 },
+  asanaName: { fontSize: 28, fontWeight: '800', color: theme.text.header, marginBottom: 8 },
   durationBadge: {
-    flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start',
-    backgroundColor: '#4ADE80', paddingHorizontal: 14, paddingVertical: 6,
-    borderRadius: 20, marginBottom: 24,
+    flexDirection: 'row', alignItems: 'center',
+    backgroundColor: 'rgba(94, 234, 212, 0.1)', alignSelf: 'flex-start',
+    paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12,
   },
-  durationText: { color: '#0D1F1C', fontSize: 14, fontWeight: '700', marginLeft: 6 },
+  durationText: { color: theme.primary, fontWeight: '600', fontSize: 13, marginLeft: 6 },
 
-  section: { marginTop: 4 },
-  sectionHeaderRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 18 },
-  sectionIconCircle: {
-    width: 36, height: 36, borderRadius: 18,
-    backgroundColor: 'rgba(74,222,128,0.12)', justifyContent: 'center', alignItems: 'center',
-  },
-  sectionTitle: { fontSize: 19, fontWeight: '700', color: '#fff', marginLeft: 10 },
-
-  stepRow: { flexDirection: 'row' },
-  stepTimeline: { alignItems: 'center', width: 44 },
-  stepDot: {
-    width: 34, height: 34, borderRadius: 17,
+  playButton: {
+    width: 56, height: 56, borderRadius: 28,
+    backgroundColor: theme.error, // YouTube Red or Accent
     justifyContent: 'center', alignItems: 'center',
+    shadowColor: theme.error, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.4, shadowRadius: 10,
+    elevation: 8,
   },
-  stepDotText: { color: '#0D1F1C', fontWeight: '700', fontSize: 15 },
-  stepLine: { width: 2, flex: 1, backgroundColor: 'rgba(74,222,128,0.2)', marginVertical: 4 },
-  stepContent: { flex: 1, paddingLeft: 14, paddingBottom: 24 },
-  stepText: { flex: 1, color: 'rgba(255,255,255,0.75)', fontSize: 16, lineHeight: 25 },
 
-  // YouTube
-  youtubeRow: { marginTop: 24 },
-  youtubeBtn: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    paddingVertical: 14, borderRadius: 16,
-    shadowColor: '#FF0000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8,
-    elevation: 6,
+  divider: { height: 1, backgroundColor: theme.border, marginBottom: 20 },
+
+  sectionTitle: { fontSize: 18, fontWeight: '700', color: theme.text.header, marginBottom: 12 },
+  description: { fontSize: 16, color: theme.text.body, lineHeight: 26, marginBottom: 24 },
+
+  benefitBox: {
+    flexDirection: 'row', alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    padding: 16, borderRadius: 16, borderWidth: 1, borderColor: theme.border,
   },
-  youtubeBtnText: { color: '#fff', fontSize: 16, fontWeight: '700', marginLeft: 10 },
+  benefitText: { color: theme.secondary, fontSize: 14, fontStyle: 'italic' },
+
+  backButton: { position: 'absolute', top: 50, left: 20, borderRadius: 20, overflow: 'hidden' },
+  backButtonBlur: { width: 40, height: 40, justifyContent: 'center', alignItems: 'center' },
+
+  practiceButton: {
+    marginTop: 30,
+    marginBottom: 20,
+    borderRadius: 20,
+    overflow: 'hidden',
+    elevation: 5,
+    shadowColor: theme.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+  },
+  gradientButton: {
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  buttonText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#FFF',
+  },
+  watchButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 12,
+    marginTop: 10,
+  },
+  watchButtonText: {
+    color: theme.primary,
+    fontSize: 16,
+    fontWeight: '600',
+    marginLeft: 8,
+  },
 });
