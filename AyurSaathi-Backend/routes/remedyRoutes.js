@@ -987,17 +987,19 @@ router.get("/:disease", async (req, res) => {
         return res.json(aiResponse);
       } catch (aiError) {
         console.error("Gemini AI failed:", aiError.message);
+        return res.status(500).json({ error: "AI Generation failed and mock data is disabled." });
         // Fall through to mock fallback
       }
     } else {
       console.log("No valid GEMINI_API_KEY configured");
+      return res.status(500).json({ error: "No API Key configured." });
     }
 
     // 4. Fallback: Check Mock Data (only used when AI fails)
-    if (FALLBACK_MOCK_RESPONSES[disease]) {
-      console.log("AI unavailable, returning mock fallback for:", disease);
-      return res.json(FALLBACK_MOCK_RESPONSES[disease]);
-    }
+    // if (FALLBACK_MOCK_RESPONSES[disease]) {
+    //   console.log("AI unavailable, returning mock fallback for:", disease);
+    //   return res.json(FALLBACK_MOCK_RESPONSES[disease]);
+    // }
 
     // 5. Generic Fallback (when AI fails and no mock data exists)
     console.log("Using generic fallback for:", disease);
