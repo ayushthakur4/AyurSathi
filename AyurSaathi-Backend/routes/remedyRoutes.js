@@ -115,7 +115,11 @@ Return ONLY valid JSON with this exact schema:
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
       const result = await model.generateContent(prompt);
-      const text = result.response.text();
+      let text = result.response.text();
+
+      // Clean up markdown formatting if present
+      text = text.replace(/```json/g, '').replace(/```/g, '').trim();
+
       const parsed = JSON.parse(text);
 
       // Validate the response has the required fields
