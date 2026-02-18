@@ -1,75 +1,79 @@
-// Theme Config: Professional Google-style Material Design
-// Kept it clean and trustworthy with plenty of whitespace and blue accents.
+// Theme — Apple Human Interface Guidelines inspired
+// Clean, minimal, system-native feel with generous whitespace
 
 export const PALETTES = {
     light: {
         background: {
-            primary: '#FFFFFF', // Classic white background
-            secondary: '#F8F9FA', // Almost white, good for subtle separation
-            tertiary: '#F1F3F4', // Light grey for inputs/cards
+            primary: '#FFFFFF',
+            secondary: '#F2F2F7',   // iOS system grouped background
+            tertiary: '#E5E5EA',    // iOS systemGray5
         },
         text: {
-            header: '#202124', // Almost black, easier on the eyes than #000
-            body: '#3C4043',   // Standard reading grey
-            subtext: '#5F6368', // Secondary info
+            header: '#000000',       // Pure black labels
+            body: '#3C3C43',         // iOS secondaryLabel
+            subtext: '#8E8E93',      // iOS systemGray
             inverse: '#FFFFFF',
         },
-        border: '#DADCE0', // Subtle borders
-        glass: 'rgba(255, 255, 255, 0.9)', // Mostly solid, just a hint of transparency
-        input: '#F1F3F4',
+        border: 'rgba(60,60,67,0.08)', // Ultra-subtle separator
+        glass: 'rgba(255,255,255,0.72)',
+        input: '#F2F2F7',
+        separator: 'rgba(60,60,67,0.12)',
     },
     dark: {
-        // keeping this just in case we ever want to switch back or offer it as a pro feature
         background: {
-            primary: '#202124',
-            secondary: '#303134',
-            tertiary: '#3C4043',
+            primary: '#000000',
+            secondary: '#1C1C1E',
+            tertiary: '#2C2C2E',
         },
         text: {
-            header: '#E8EAED',
-            body: '#BDC1C6',
-            subtext: '#9AA0A6',
-            inverse: '#202124',
+            header: '#FFFFFF',
+            body: '#EBEBF5',
+            subtext: '#8E8E93',
+            inverse: '#000000',
         },
-        border: '#5F6368',
-        glass: 'rgba(48, 49, 52, 0.9)',
-        input: '#303134',
+        border: 'rgba(84,84,88,0.36)',
+        glass: 'rgba(28,28,30,0.72)',
+        input: '#1C1C1E',
+        separator: 'rgba(84,84,88,0.36)',
     },
 };
 
 export const COMMON_COLORS = {
-    primary: '#1A73E8', // Google Blue
-    primaryDark: '#174EA6', // Google Blue Dark
-    secondary: '#188038', // Google Green
-    success: '#1E8E3E',
-    warning: '#F9AB00', // Google Yellow
-    error: '#D93025', // Google Red
+    primary: '#007AFF',        // iOS Blue
+    primaryDark: '#0056CC',
+    secondary: '#34C759',      // iOS Green
+    secondaryDark: '#248A3D',
+    success: '#34C759',        // iOS Green
+    warning: '#FF9500',        // iOS Orange
+    error: '#FF3B30',          // iOS Red
+    accent: '#AF52DE',         // iOS Purple
+    teal: '#5AC8FA',           // iOS Light Blue
+    pink: '#FF2D55',           // iOS Pink
+    indigo: '#5856D6',         // iOS Indigo
 };
 
-export const getTheme = (mode = 'light') => ({ // Default to light for professional feel
+export const getTheme = (mode = 'light') => ({
     ...COMMON_COLORS,
     ...PALETTES[mode],
     mode,
 });
 
-// Shared Styles Generator
+// Shared card style — Apple uses very soft shadows, no borders
 export const getSharedStyles = (theme) => ({
     glassCard: {
-        backgroundColor: theme.background.secondary, // Solid professional look, less glass
-        borderColor: theme.border,
-        borderWidth: 1,
-        overflow: 'hidden',
-        shadowColor: 'rgba(60, 64, 67, 0.3)',
+        backgroundColor: theme.mode === 'light' ? '#FFFFFF' : '#1C1C1E',
+        borderRadius: 16,
+        shadowColor: '#000',
         shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.2,
-        shadowRadius: 2,
-        elevation: 2,
+        shadowOpacity: 0.04,
+        shadowRadius: 8,
+        elevation: 1,
     },
     shadow: {
-        shadowColor: 'rgba(60, 64, 67, 0.3)',
+        shadowColor: '#000',
         shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.2,
-        shadowRadius: 2,
-        elevation: 2,
+        shadowOpacity: 0.04,
+        shadowRadius: 8,
+        elevation: 1,
     },
 });

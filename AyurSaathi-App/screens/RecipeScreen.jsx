@@ -1,146 +1,151 @@
 import React, { useRef, useEffect, useMemo } from 'react';
-import { View, Text, ScrollView, StyleSheet, Animated } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur';
+import { View, Text, ScrollView, StyleSheet, Animated, TouchableOpacity, Share, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 import { useTheme } from '../context/ThemeContext';
 
-export default function RecipeScreen({ route }) {
-  const { theme, mode } = useTheme();
-  const styles = useMemo(() => createStyles(theme), [theme]);
-
+export default function RecipeScreen({ route, navigation }) {
+  const { theme } = useTheme();
+  const s = useMemo(() => mk(theme), [theme]);
   const { remedy } = route.params;
+
   const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(30)).current;
 
   useEffect(() => {
-    Animated.parallel([
-      Animated.timing(fadeAnim, { toValue: 1, duration: 600, useNativeDriver: true }),
-      Animated.timing(slideAnim, { toValue: 0, duration: 600, useNativeDriver: true }),
-    ]).start();
+    Animated.timing(fadeAnim, { toValue: 1, duration: 400, useNativeDriver: true }).start();
   }, []);
 
-  return (
-    <LinearGradient colors={[theme.background.primary, theme.background.secondary, theme.background.primary]} style={styles.container}>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+  const shareRecipe = async () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    const ings = remedy.ingredients?.join(', ') || '';
+    const steps = remedy.preparationSteps?.map((x, i) => `${i + 1}. ${x}`).join('\n') || '';
+    try {
+      await Share.share({ message: `${remedy.remedyName}\n\nIngredients: ${ings}\n\n${steps}\n\n\u2014 AyurSathi` });
+    } catch (e) { }
+  };
 
-        {/* Header */}
-        <Animated.View style={[styles.headerSection, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
-          <LinearGradient colors={[theme.primary, theme.primaryDark]} style={styles.headerBadge}>
-            <Ionicons name="flask" size={22} color={theme.background.primary} />
-          </LinearGradient>
-          <Text style={styles.title}>{remedy.remedyName}</Text>
-          <View style={styles.titleUnderline} />
+  return (
+    <View style={s.root}>
+      {/* Nav */}
+      <View style={s.nav}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={s.navBtn}>
+          <Ionicons name="chevron-back" size={24} color={theme.primary} />
+        </TouchableOpacity>
+        <Text style={s.navTitle}>Remedy Detail</Text>
+        <TouchableOpacity onPress={shareRecipe} style={s.navBtn}>
+          <Ionicons name="share-outline" size={20} color={theme.primary} />
+        </TouchableOpacity>
+      </View>
+
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.scroll}>
+        {/* Title */}
+        <Animated.View style={[s.titleBlock, { opacity: fadeAnim }]}>
+          <Text style={s.title}>{remedy.remedyName}</Text>
+          <View style={s.meta}>
+            <MetaPill icon="leaf-outline" label="Natural" color="#34C759" s={s} />
+            <MetaPill icon="flask-outline" label={`${remedy.ingredients?.length || 0} Items`} color="#007AFF" s={s} />
+          </View>
         </Animated.View>
 
         {/* Ingredients */}
-        {remedy.ingredients && remedy.ingredients.length > 0 && (
+        {remedy.ingredients?.length > 0 && (
           <Animated.View style={{ opacity: fadeAnim }}>
-            <View style={styles.card}>
-              <BlurView intensity={20} tint={mode === 'dark' ? 'dark' : 'light'} style={styles.cardBlur}>
-                <View style={styles.cardHeader}>
-                  <View style={styles.cardIconCircle}>
-                    <Ionicons name="list" size={20} color={theme.primary} />
-                  </View>
-                  <Text style={styles.sectionTitle}>Ingredients</Text>
-                  <View style={styles.countBadge}>
-                    <Text style={styles.countText}>{remedy.ingredients.length}</Text>
-                  </View>
+            <Text style={s.secLabel}>INGREDIENTS</Text>
+            <View style={s.group}>
+              {remedy.ingredients.map((ing, i) => (
+                <View key={i} style={[s.ingRow, i < remedy.ingredients.length - 1 && s.rowBorder]}>
+                  <View style={s.ingDot} />
+                  <Text style={s.ingText}>{ing}</Text>
                 </View>
-                {remedy.ingredients.map((ingredient, index) => (
-                  <View key={index} style={styles.ingredientRow}>
-                    <LinearGradient colors={[theme.primary, theme.primaryDark]} style={styles.ingredientDot} />
-                    <Text style={styles.ingredientText}>{ingredient}</Text>
-                  </View>
-                ))}
-              </BlurView>
+              ))}
             </View>
           </Animated.View>
         )}
 
-        {/* Preparation Steps */}
-        {remedy.preparationSteps && remedy.preparationSteps.length > 0 && (
+        {/* Preparation */}
+        {remedy.preparationSteps?.length > 0 && (
           <Animated.View style={{ opacity: fadeAnim }}>
-            <View style={styles.card}>
-              <BlurView intensity={20} tint={mode === 'dark' ? 'dark' : 'light'} style={styles.cardBlur}>
-                <View style={styles.cardHeader}>
-                  <View style={styles.cardIconCircle}>
-                    <Ionicons name="checkmark-circle" size={20} color={theme.primary} />
+            <Text style={s.secLabel}>PREPARATION</Text>
+            <View style={s.group}>
+              {remedy.preparationSteps.map((step, i) => (
+                <View key={i} style={[s.stepRow, i < remedy.preparationSteps.length - 1 && s.rowBorder]}>
+                  <View style={s.stepNum}>
+                    <Text style={s.stepNumText}>{i + 1}</Text>
                   </View>
-                  <Text style={styles.sectionTitle}>Preparation</Text>
+                  <Text style={s.stepText}>{step}</Text>
                 </View>
-                {remedy.preparationSteps.map((step, index) => (
-                  <View key={index} style={styles.stepRow}>
-                    <View style={styles.stepTimeline}>
-                      <LinearGradient colors={[theme.primary, theme.primaryDark]} style={styles.stepNumber}>
-                        <Text style={styles.stepNumberText}>{index + 1}</Text>
-                      </LinearGradient>
-                      {index < remedy.preparationSteps.length - 1 && <View style={styles.stepLine} />}
-                    </View>
-                    <View style={styles.stepContent}>
-                      <Text style={styles.stepText}>{step}</Text>
-                    </View>
-                  </View>
-                ))}
-              </BlurView>
+              ))}
             </View>
           </Animated.View>
         )}
 
+        {/* Tip */}
+        <View style={s.tip}>
+          <Ionicons name="lightbulb-outline" size={14} color="#FF9500" />
+          <Text style={s.tipText}>Best consumed fresh. Store in a cool, dry place if needed.</Text>
+        </View>
       </ScrollView>
-    </LinearGradient>
+    </View>
   );
 }
 
-const createStyles = (theme) => StyleSheet.create({
-  container: { flex: 1 },
-  scrollContent: { padding: 20, paddingTop: 90, paddingBottom: 40 },
+const MetaPill = ({ icon, label, color, s }) => (
+  <View style={s.pill}>
+    <Ionicons name={icon} size={13} color={color} />
+    <Text style={s.pillText}>{label}</Text>
+  </View>
+);
 
-  // Header
-  headerSection: { alignItems: 'center', marginBottom: 28 },
-  headerBadge: {
-    width: 52, height: 52, borderRadius: 26,
-    justifyContent: 'center', alignItems: 'center', marginBottom: 16,
-    shadowColor: theme.primary, shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.35, shadowRadius: 16,
-    elevation: 8,
-  },
-  title: {
-    fontSize: 28, fontWeight: '800', color: theme.text.header, textAlign: 'center',
-  },
-  titleUnderline: { width: 40, height: 3, backgroundColor: theme.primary, borderRadius: 2, marginTop: 10 },
+const mk = (t) => StyleSheet.create({
+  root: { flex: 1, backgroundColor: t.background.secondary },
+  scroll: { paddingHorizontal: 20, paddingBottom: 40 },
 
-  // Cards
-  card: {
-    borderRadius: 22, overflow: 'hidden', marginBottom: 18,
-    borderWidth: 1, borderColor: theme.border,
-    backgroundColor: theme.glass,
+  nav: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingTop: Platform.OS === 'ios' ? 56 : 44, paddingHorizontal: 8, paddingBottom: 4,
+    backgroundColor: t.background.secondary,
   },
-  cardBlur: { padding: 20 },
-  cardHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 18 },
-  cardIconCircle: {
-    width: 36, height: 36, borderRadius: 18,
-    backgroundColor: 'rgba(94, 234, 212, 0.1)', justifyContent: 'center', alignItems: 'center',
+  navBtn: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+  navTitle: { fontSize: 17, fontWeight: '600', color: t.text.header, flex: 1, textAlign: 'center' },
+
+  titleBlock: { marginBottom: 24, paddingTop: 8 },
+  title: { fontSize: 28, fontWeight: '800', color: t.text.header },
+  meta: { flexDirection: 'row', gap: 8, marginTop: 10 },
+  pill: {
+    flexDirection: 'row', alignItems: 'center', gap: 4,
+    backgroundColor: t.background.tertiary, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8,
   },
-  sectionTitle: { fontSize: 18, fontWeight: '700', color: theme.text.header, marginLeft: 10, flex: 1 },
-  countBadge: {
-    backgroundColor: 'rgba(94, 234, 212, 0.15)', paddingHorizontal: 10, paddingVertical: 3, borderRadius: 10,
+  pillText: { fontSize: 12, color: t.text.body, fontWeight: '500' },
+
+  secLabel: {
+    fontSize: 13, fontWeight: '600', color: t.text.subtext,
+    letterSpacing: 0.4, marginBottom: 6, marginLeft: 4, marginTop: 8,
   },
-  countText: { fontSize: 12, color: theme.primary, fontWeight: '700' },
+
+  group: {
+    backgroundColor: '#FFFFFF', borderRadius: 12, overflow: 'hidden', marginBottom: 16,
+    ...Platform.select({
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.03, shadowRadius: 6 },
+      android: { elevation: 1 },
+    }),
+  },
 
   // Ingredients
-  ingredientRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
-  ingredientDot: { width: 8, height: 8, borderRadius: 4, marginRight: 12 },
-  ingredientText: { flex: 1, color: theme.text.body, fontSize: 15, lineHeight: 22 },
+  ingRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 13, paddingHorizontal: 16 },
+  rowBorder: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.separator },
+  ingDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: t.primary, marginRight: 12 },
+  ingText: { flex: 1, fontSize: 17, color: t.text.header },
 
-  // Steps (timeline style)
-  stepRow: { flexDirection: 'row' },
-  stepTimeline: { alignItems: 'center', width: 42 },
-  stepNumber: {
-    width: 30, height: 30, borderRadius: 15,
-    justifyContent: 'center', alignItems: 'center',
+  // Steps
+  stepRow: { flexDirection: 'row', alignItems: 'flex-start', paddingVertical: 14, paddingHorizontal: 16 },
+  stepNum: {
+    width: 24, height: 24, borderRadius: 12, backgroundColor: t.primary,
+    alignItems: 'center', justifyContent: 'center', marginRight: 12, marginTop: 1,
   },
-  stepNumberText: { color: theme.background.primary, fontWeight: '700', fontSize: 14 },
-  stepLine: { width: 2, flex: 1, backgroundColor: theme.border, marginVertical: 4 },
-  stepContent: { flex: 1, paddingLeft: 12, paddingBottom: 22 },
-  stepText: { color: theme.text.body, fontSize: 15, lineHeight: 23 },
+  stepNumText: { color: '#FFF', fontWeight: '700', fontSize: 12 },
+  stepText: { flex: 1, fontSize: 15, color: t.text.body, lineHeight: 22 },
+
+  // Tip
+  tip: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, paddingHorizontal: 4, marginTop: 8 },
+  tipText: { flex: 1, fontSize: 13, color: t.text.subtext, lineHeight: 18 },
 });

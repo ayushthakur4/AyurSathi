@@ -1,203 +1,198 @@
 import React, { useRef, useEffect, useMemo } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Dimensions, Animated, Linking } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Dimensions, Animated, Linking, Share, Platform } from 'react-native';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
+import * as Haptics from 'expo-haptics';
 import { useTheme } from '../context/ThemeContext';
 
 const { width, height } = Dimensions.get('window');
 
 export default function YogaDetailScreen({ route, navigation }) {
-  const { theme, mode } = useTheme();
-  const styles = useMemo(() => createStyles(theme), [theme]);
-
+  const { theme } = useTheme();
+  const s = useMemo(() => mk(theme), [theme]);
   const { yoga } = route.params;
+
   const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(50)).current;
+  const slideAnim = useRef(new Animated.Value(30)).current;
 
   useEffect(() => {
     Animated.parallel([
-      Animated.timing(fadeAnim, { toValue: 1, duration: 800, useNativeDriver: true }),
-      Animated.timing(slideAnim, { toValue: 0, duration: 800, useNativeDriver: true }),
+      Animated.timing(fadeAnim, { toValue: 1, duration: 600, useNativeDriver: true }),
+      Animated.timing(slideAnim, { toValue: 0, duration: 600, useNativeDriver: true }),
     ]).start();
   }, []);
 
   const openYouTube = () => {
-    const query = yoga.youtubeSearchQuery || `${yoga.asanaName} yoga tutorial`;
-    Linking.openURL(`https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    const q = yoga.youtubeSearchQuery || `${yoga.asanaName} yoga tutorial`;
+    Linking.openURL(`https://www.youtube.com/results?search_query=${encodeURIComponent(q)}`);
+  };
+
+  const shareYoga = async () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    try {
+      await Share.share({
+        message: `${yoga.asanaName} \u2014 ${yoga.duration}\n\n${yoga.steps || ''}\n\nBenefits: ${yoga.benefits || ''}\n\n\u2014 AyurSathi`,
+      });
+    } catch (e) { }
   };
 
   return (
-    <View style={styles.container}>
-      {/* Background Image with Gradient Overlay */}
-      <View style={styles.imageContainer}>
+    <View style={s.root}>
+      {/* Hero */}
+      <View style={s.heroWrap}>
         <Image
           source={{ uri: `https://tse4.mm.bing.net/th?q=${encodeURIComponent(yoga.asanaName + ' yoga pose')}&w=800&h=600&c=7&rs=1&p=0` }}
-          style={styles.heroImage}
+          style={s.heroImg}
           contentFit="cover"
           transition={200}
         />
-        <LinearGradient
-          colors={['transparent', theme.background.primary]}
-          style={styles.heroGradient}
-        />
+        <LinearGradient colors={['transparent', 'rgba(0,0,0,0.5)']} style={s.heroGrad} />
       </View>
 
-      {/* Content wrapper - scrolling enabled */}
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        <View style={styles.spacer} />
-
-        <Animated.View style={[styles.contentCard, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
-          {/* 
-            Glassmorphism sheet effect.
-            Using 90 intensity for a solid, premium feel. 
-          */}
-          <BlurView intensity={90} tint={mode === 'dark' ? 'dark' : 'light'} style={styles.blurContainer}>
-
-            {/* Header: Title + Duration */}
-            <View style={styles.headerBar}>
-              <View style={styles.pill}>
-                <Ionicons name="body" size={14} color={theme.primary} />
-                <Text style={styles.pillText}>Yoga Asana</Text>
-              </View>
-              <View style={styles.row}>
-                <Ionicons name="time-outline" size={16} color={theme.text.subtext} />
-                <Text style={styles.durationText}>{yoga.duration}</Text>
-              </View>
-            </View>
-
-            <Text style={styles.title}>{yoga.asanaName}</Text>
-            <View style={styles.divider} />
-
-            {/* Steps Section */}
-            <Text style={styles.sectionTitle}>Instructions</Text>
-            <Text style={styles.description}>
-              {yoga.steps || "Follow the video guidance for best results."}
-            </Text>
-
-            {/* Benefits Section */}
-            <Text style={styles.sectionTitle}>Benefits</Text>
-            <Text style={styles.description}>
-              {yoga.benefits || "Promotes flexibility and mindfulness."}
-            </Text>
-
-            {/* Watch Video Button */}
-            <TouchableOpacity style={styles.watchButton} onPress={openYouTube} activeOpacity={0.7}>
-              <Ionicons name="logo-youtube" size={24} color="#FF0000" />
-              <Text style={styles.watchButtonText}>Watch Tutorial</Text>
-            </TouchableOpacity>
-
-            {/* Practice Button - The main call to action */}
-            <TouchableOpacity style={styles.practiceButton} activeOpacity={0.8} onPress={() => alert("Marked as practiced!")}>
-              <LinearGradient
-                colors={[theme.primary, theme.primaryDark]}
-                style={styles.gradientButton}
-              >
-                <Text style={styles.buttonText}>Start Practice</Text>
-                <Ionicons name="checkmark-circle" size={24} color="#FFF" style={{ marginLeft: 8 }} />
-              </LinearGradient>
-            </TouchableOpacity>
-
+      {/* Nav Buttons */}
+      <View style={s.topNav}>
+        <TouchableOpacity style={s.topBtn} onPress={() => navigation.goBack()}>
+          <BlurView intensity={60} tint="dark" style={s.topBtnInner}>
+            <Ionicons name="chevron-back" size={22} color="#FFF" />
           </BlurView>
+        </TouchableOpacity>
+        <TouchableOpacity style={s.topBtn} onPress={shareYoga}>
+          <BlurView intensity={60} tint="dark" style={s.topBtnInner}>
+            <Ionicons name="share-outline" size={20} color="#FFF" />
+          </BlurView>
+        </TouchableOpacity>
+      </View>
+
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.scroll}>
+        <View style={s.spacer} />
+
+        <Animated.View style={[s.card, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
+          {/* Title */}
+          <Text style={s.title}>{yoga.asanaName}</Text>
+          <View style={s.meta}>
+            <MetaPill icon="time-outline" label={yoga.duration} color="#007AFF" s={s} />
+            <MetaPill icon="body-outline" label="Yoga Asana" color="#5856D6" s={s} />
+          </View>
+
+          {/* Instructions */}
+          <Text style={s.secLabel}>HOW TO PERFORM</Text>
+          <View style={s.group}>
+            <Text style={s.bodyText}>
+              {yoga.steps || 'Follow the video tutorial for step-by-step guidance. Maintain steady breathing throughout.'}
+            </Text>
+          </View>
+
+          {/* Benefits */}
+          <Text style={s.secLabel}>BENEFITS</Text>
+          <View style={s.group}>
+            <Text style={s.bodyText}>
+              {yoga.benefits || 'Improves flexibility, reduces stress, and enhances mind-body balance.'}
+            </Text>
+          </View>
+
+          {/* YouTube Button */}
+          <TouchableOpacity style={s.ytBtn} onPress={openYouTube} activeOpacity={0.75}>
+            <Ionicons name="logo-youtube" size={20} color="#FF3B30" />
+            <Text style={s.ytText}>Watch Video Tutorial</Text>
+            <Ionicons name="chevron-forward" size={16} color={theme.text.subtext + '50'} />
+          </TouchableOpacity>
+
+          {/* Practice Button */}
+          <TouchableOpacity
+            style={s.practiceBtn}
+            activeOpacity={0.75}
+            onPress={() => {
+              Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+              alert('Awesome! Marked as practiced today \uD83C\uDF89');
+            }}
+          >
+            <Text style={s.practiceBtnText}>Mark as Practiced</Text>
+          </TouchableOpacity>
+
+          {/* Tip */}
+          <View style={s.tip}>
+            <Ionicons name="lightbulb-outline" size={14} color="#FF9500" />
+            <Text style={s.tipText}>Practice on an empty stomach for best results. Morning is ideal.</Text>
+          </View>
         </Animated.View>
       </ScrollView>
-
-      {/* Back Button (Absolute) */}
-      <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-        <BlurView intensity={50} tint={mode === 'dark' ? 'dark' : 'light'} style={styles.backButtonBlur}>
-          <Ionicons name="arrow-back" size={24} color={theme.text.header} />
-        </BlurView>
-      </TouchableOpacity>
-    </View >
+    </View>
   );
 }
 
-const createStyles = (theme) => StyleSheet.create({
-  container: { flex: 1, backgroundColor: theme.background.primary },
-  imageContainer: { width: width, height: height * 0.5, position: 'absolute', top: 0 },
-  heroImage: { width: '100%', height: '100%' },
-  heroGradient: { position: 'absolute', bottom: 0, left: 0, right: 0, height: '60%' },
+const MetaPill = ({ icon, label, color, s }) => (
+  <View style={s.pill}>
+    <Ionicons name={icon} size={13} color={color} />
+    <Text style={s.pillText}>{label}</Text>
+  </View>
+);
 
-  scrollContent: { paddingBottom: 40 },
-  spacer: { height: height * 0.35 },
+const mk = (t) => StyleSheet.create({
+  root: { flex: 1, backgroundColor: t.background.secondary },
 
-  contentCard: {
-    marginHorizontal: 20,
-    borderRadius: 30,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: theme.border,
-    backgroundColor: theme.glass,
+  heroWrap: { width, height: height * 0.40, position: 'absolute', top: 0 },
+  heroImg: { width: '100%', height: '100%' },
+  heroGrad: { position: 'absolute', bottom: 0, left: 0, right: 0, height: '60%' },
+
+  topNav: {
+    position: 'absolute', top: Platform.OS === 'ios' ? 52 : 40, left: 16, right: 16, zIndex: 10,
+    flexDirection: 'row', justifyContent: 'space-between',
   },
-  blurContainer: { padding: 24 },
+  topBtn: { borderRadius: 22, overflow: 'hidden' },
+  topBtnInner: { width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center' },
 
-  headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 },
-  asanaName: { fontSize: 28, fontWeight: '800', color: theme.text.header, marginBottom: 8 },
-  durationBadge: {
-    flexDirection: 'row', alignItems: 'center',
-    backgroundColor: 'rgba(94, 234, 212, 0.1)', alignSelf: 'flex-start',
-    paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12,
-  },
-  durationText: { color: theme.primary, fontWeight: '600', fontSize: 13, marginLeft: 6 },
+  scroll: { paddingBottom: 40 },
+  spacer: { height: height * 0.30 },
 
-  playButton: {
-    width: 56, height: 56, borderRadius: 28,
-    backgroundColor: theme.error, // YouTube Red or Accent
-    justifyContent: 'center', alignItems: 'center',
-    shadowColor: theme.error, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.4, shadowRadius: 10,
-    elevation: 8,
+  card: {
+    marginHorizontal: 16, borderRadius: 20, backgroundColor: t.background.secondary, padding: 24,
+    ...Platform.select({
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: -2 }, shadowOpacity: 0.06, shadowRadius: 12 },
+      android: { elevation: 4 },
+    }),
   },
 
-  divider: { height: 1, backgroundColor: theme.border, marginBottom: 20 },
+  title: { fontSize: 28, fontWeight: '800', color: t.text.header, marginBottom: 10 },
+  meta: { flexDirection: 'row', gap: 8, marginBottom: 24 },
+  pill: {
+    flexDirection: 'row', alignItems: 'center', gap: 4,
+    backgroundColor: t.background.tertiary, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8,
+  },
+  pillText: { fontSize: 12, color: t.text.body, fontWeight: '500' },
 
-  sectionTitle: { fontSize: 18, fontWeight: '700', color: theme.text.header, marginBottom: 12 },
-  description: { fontSize: 16, color: theme.text.body, lineHeight: 26, marginBottom: 24 },
+  secLabel: {
+    fontSize: 13, fontWeight: '600', color: t.text.subtext,
+    letterSpacing: 0.4, marginBottom: 6, marginLeft: 4,
+  },
+  group: {
+    backgroundColor: '#FFFFFF', borderRadius: 12, padding: 16, marginBottom: 16,
+    ...Platform.select({
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.03, shadowRadius: 6 },
+      android: { elevation: 1 },
+    }),
+  },
+  bodyText: { fontSize: 15, color: t.text.body, lineHeight: 24 },
 
-  benefitBox: {
-    flexDirection: 'row', alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
-    padding: 16, borderRadius: 16, borderWidth: 1, borderColor: theme.border,
+  // YouTube row — iOS list style
+  ytBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 10,
+    backgroundColor: '#FFFFFF', borderRadius: 12, paddingVertical: 14, paddingHorizontal: 16, marginBottom: 10,
+    ...Platform.select({
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.03, shadowRadius: 6 },
+      android: { elevation: 1 },
+    }),
   },
-  benefitText: { color: theme.secondary, fontSize: 14, fontStyle: 'italic' },
+  ytText: { flex: 1, fontSize: 17, fontWeight: '500', color: t.text.header },
 
-  backButton: { position: 'absolute', top: 50, left: 20, borderRadius: 20, overflow: 'hidden' },
-  backButtonBlur: { width: 40, height: 40, justifyContent: 'center', alignItems: 'center' },
+  // Practice Button — iOS prominent style
+  practiceBtn: {
+    backgroundColor: t.primary, borderRadius: 14, paddingVertical: 16, alignItems: 'center', marginBottom: 16,
+  },
+  practiceBtnText: { color: '#FFF', fontSize: 17, fontWeight: '600' },
 
-  practiceButton: {
-    marginTop: 30,
-    marginBottom: 20,
-    borderRadius: 20,
-    overflow: 'hidden',
-    elevation: 5,
-    shadowColor: theme.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-  },
-  gradientButton: {
-    paddingVertical: 16,
-    paddingHorizontal: 24,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  buttonText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#FFF',
-  },
-  watchButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 12,
-    marginTop: 10,
-  },
-  watchButtonText: {
-    color: theme.primary,
-    fontSize: 16,
-    fontWeight: '600',
-    marginLeft: 8,
-  },
+  tip: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, paddingHorizontal: 4 },
+  tipText: { flex: 1, fontSize: 13, color: t.text.subtext, lineHeight: 18 },
 });

@@ -21,3 +21,12 @@ const getApiUrl = () => {
 };
 
 export const API_URL = getApiUrl();
+
+// Version check endpoint
+const getVersionUrl = () => {
+    if (USE_LOCAL && __DEV__) {
+        return `http://${LOCAL_IP}:5000/api/version`;
+    }
+    return 'https://ayursathi.onrender.com/api/version';
+};
+export const VERSION_API_URL = getVersionUrl();

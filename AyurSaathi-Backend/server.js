@@ -32,8 +32,9 @@ console.log("Connecting to MongoDB...");
 
 mongoose
   .connect(mongoURI, {
-    serverSelectionTimeoutMS: 15000,
-    connectTimeoutMS: 15000,
+    serverSelectionTimeoutMS: 30000, // 30s
+    connectTimeoutMS: 45000, // 45s
+    socketTimeoutMS: 60000, // 60s
   })
   .then(() => console.log("MongoDB Connected successfully....."))
   .catch((err) => {
@@ -51,6 +52,22 @@ mongoose.connection.on("reconnected", () =>
 // Health-check route
 app.get("/", (req, res) => {
   res.json({ status: "ok", message: "AyurSathi API is running 🌿" });
+});
+
+// ─── App Version / Update Check ───
+app.get("/api/version", (req, res) => {
+  res.json({
+    latestVersion: "1.1.0",
+    minVersion: "1.0.0",        // Force-update below this
+    releaseNotes: [
+      "✨ Brand new Apple-inspired UI",
+      "🤖 Faster AI-powered search",
+      "🧘 Improved yoga detail screens",
+      "🐛 Bug fixes and performance improvements",
+    ],
+    updateUrl: "https://expo.dev/@ayushthakur4/ayursaathi-app",
+    mandatory: false,
+  });
 });
 
 app.use("/api/remedies", remedyRoutes);

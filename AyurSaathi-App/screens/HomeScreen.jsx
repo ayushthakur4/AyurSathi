@@ -1,7 +1,7 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
-  Animated, Keyboard, Alert, ScrollView, Dimensions, Image,
+  Animated, Keyboard, Alert, ScrollView, Dimensions, Image, Platform,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
@@ -9,14 +9,20 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import axios from 'axios';
 import { StatusBar } from 'expo-status-bar';
-
 import { API_URL } from '../config';
 import { useTheme } from '../context/ThemeContext';
 
 const { width } = Dimensions.get('window');
 
-// ─── Quick ailments data ───
-const QUICK_AILMENTS = [
+const getGreeting = () => {
+  const h = new Date().getHours();
+  if (h < 12) return { text: 'Good Morning', icon: 'sunny-outline' };
+  if (h < 17) return { text: 'Good Afternoon', icon: 'partly-sunny-outline' };
+  if (h < 21) return { text: 'Good Evening', icon: 'moon-outline' };
+  return { text: 'Good Night', icon: 'cloudy-night-outline' };
+};
+
+const AILMENTS = [
   { label: 'Headache', icon: '🤕' },
   { label: 'Cold & Flu', icon: '🤧' },
   { label: 'Stress', icon: '😰' },
@@ -25,420 +31,358 @@ const QUICK_AILMENTS = [
   { label: 'Insomnia', icon: '😴' },
   { label: 'Skin Care', icon: '✨' },
   { label: 'Joint Pain', icon: '🦵' },
+  { label: 'Anxiety', icon: '😥' },
+  { label: 'Migraine', icon: '🧠' },
+];
+
+const TIPS = [
+  { emoji: '🍋', tip: 'Start your morning with warm lemon water to ignite your digestive fire and flush toxins.', tag: 'Morning Ritual' },
+  { emoji: '🧘', tip: '5 minutes of Pranayama daily can balance your doshas and reduce stress levels.', tag: 'Breathwork' },
+  { emoji: '🌿', tip: 'Tulsi tea is a powerful adaptogen \u2014 it boosts immunity and calms anxiety naturally.', tag: 'Herbal' },
+  { emoji: '🛌', tip: 'Ayurveda recommends sleeping by 10 PM for optimal detoxification and recovery.', tag: 'Sleep' },
+  { emoji: '💧', tip: 'Sip warm water throughout the day. Cold water dampens Agni and slows digestion.', tag: 'Hydration' },
+  { emoji: '🍯', tip: 'Raw honey with warm water on an empty stomach supports immunity and digestion.', tag: 'Diet' },
+];
+
+const DOSHAS = [
+  { name: 'Vata', emoji: '🌬️', element: 'Air + Space', color: '#5AC8FA', traits: ['Creative', 'Quick', 'Energetic'] },
+  { name: 'Pitta', emoji: '🔥', element: 'Fire + Water', color: '#FF9500', traits: ['Focused', 'Sharp', 'Athletic'] },
+  { name: 'Kapha', emoji: '🌍', element: 'Earth + Water', color: '#34C759', traits: ['Calm', 'Strong', 'Steady'] },
 ];
 
 export default function HomeScreen({ navigation }) {
-  const { theme, mode, toggleTheme } = useTheme();
-  const styles = useMemo(() => createStyles(theme), [theme]);
+  const { theme } = useTheme();
+  const s = useMemo(() => mk(theme), [theme]);
+  const greeting = useMemo(() => getGreeting(), []);
 
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(false);
+  const [tipIdx, setTipIdx] = useState(0);
+
   const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(30)).current;
-  const pulseAnim = useRef(new Animated.Value(1)).current;
 
-  // ─── Feature highlights (Dynamic) ───
-  const FEATURES = useMemo(() => [
-    {
-      icon: 'leaf',
-      title: 'Herbal Remedies',
-      desc: 'Discover time-tested herbal formulations backed by ancient Ayurvedic texts.',
-      gradient: [theme.background.secondary, theme.background.tertiary],
-    },
-    {
-      icon: 'body',
-      title: 'Yoga & Asanas',
-      desc: 'Personalized yoga routines tailored to your specific health condition.',
-      gradient: [theme.background.secondary, theme.background.tertiary],
-    },
-    {
-      icon: 'medkit',
-      title: 'Doctor Guidance',
-      desc: 'Know when to seek professional help with intelligent medical advice.',
-      gradient: [theme.background.secondary, theme.background.tertiary],
-    },
-  ], [theme]);
-
-  // ─── How it works steps (Static data, dynamic styles) ───
-  const STEPS = [
-    { icon: 'chatbubble-ellipses', title: 'Describe', desc: 'Tell us your health concern in simple words' },
-    { icon: 'sparkles', title: 'AI Analyzes', desc: 'Our AI references thousands of Ayurvedic texts' },
-    { icon: 'heart-circle', title: 'Get Healed', desc: 'Receive remedies, yoga, diet tips & doctor advice' },
-  ];
-
-  // ─── Simple animations for the hero elements ───
   useEffect(() => {
-    Animated.parallel([
-      Animated.timing(fadeAnim, { toValue: 1, duration: 800, useNativeDriver: true }),
-      Animated.timing(slideAnim, { toValue: 0, duration: 800, useNativeDriver: true }),
-    ]).start();
-
-    // A nice breathing effect for the logo
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulseAnim, { toValue: 1.08, duration: 2000, useNativeDriver: true }),
-        Animated.timing(pulseAnim, { toValue: 1, duration: 2000, useNativeDriver: true }),
-      ])
-    ).start();
+    const t = setInterval(() => setTipIdx(p => (p + 1) % TIPS.length), 6000);
+    return () => clearInterval(t);
   }, []);
 
-  const handleSearch = async (searchQuery) => {
-    const q = searchQuery || query;
-    if (!q.trim()) return;
+  useEffect(() => {
+    Animated.timing(fadeAnim, { toValue: 1, duration: 500, useNativeDriver: true }).start();
+  }, []);
 
+  const search = useCallback(async (q) => {
+    const val = q || query;
+    if (!val.trim()) return;
     Keyboard.dismiss();
-    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); // Little haptic feedback feels good
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setLoading(true);
-
     try {
-      const url = `${API_URL}/${encodeURIComponent(q)}`;
-      console.log('Hitting API:', url);
-      const response = await axios.get(url, { timeout: 45000 });
-      console.log('Got data:', response.data);
-      navigation.navigate('Results', { remedy: response.data });
-    } catch (error) {
-      console.error('API Error:', error.message);
-      // ... error handling code ...
-      // (truncated for brevity in this replace block, assuming rest is same logic)
-      let message;
-      // ... keeping logic same ...
-      if (error.code === 'ECONNABORTED') {
-        message = 'Taking too long. backend might be asleep.';
-      } else if (error.message?.includes('Network Error')) {
-        message = `Can't reach the server at ${API_URL}. Check network?`;
-      } else {
-        message = error.response?.data?.error || 'Server connection failed.';
-      }
-      Alert.alert('Connection Trouble', message);
+      const res = await axios.get(`${API_URL}/${encodeURIComponent(val)}`, { timeout: 45000 });
+      navigation.navigate('Results', { remedy: res.data });
+    } catch (err) {
+      let msg = 'Something went wrong. Please try again.';
+      if (err.code === 'ECONNABORTED') msg = 'Server is taking too long. Try again.';
+      else if (err.message?.includes('Network Error')) msg = 'Cannot reach server. Check your connection.';
+      else if (err.response?.data?.error) msg = err.response.data.error;
+      Alert.alert('Oops', msg);
     } finally {
       setLoading(false);
     }
-  };
+  }, [query, navigation]);
 
-  const handleQuickAilment = (label) => {
-    setQuery(label);
-    handleSearch(label);
-  };
+  const tip = TIPS[tipIdx];
 
-  // ────────────────────── UI RENDER ──────────────────────
   return (
-    <View style={styles.container}>
-      {/* Background gradient - gives it that nice depth */}
-      <LinearGradient
-        colors={[theme.background.primary, theme.background.secondary, theme.background.primary]}
-        style={StyleSheet.absoluteFill}
-      />
+    <View style={s.root}>
+      <StatusBar style="dark" />
 
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
-      >
-        {/* ═══ HERO SECTION: The big welcome ═══ */}
-        <Animated.View style={[styles.heroSection, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
-          {/* Subtle glow behind the logo */}
-          <View style={styles.glowCircle} />
-          <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
-            <LinearGradient colors={[theme.primary, theme.primaryDark]} style={styles.iconCircle}>
-              <Image source={require('../assets/icon.png')} style={{ width: 56, height: 56, resizeMode: 'contain' }} />
-            </LinearGradient>
-          </Animated.View>
-          <Text style={styles.heroTitle}>AyurSathi</Text>
-          <View style={styles.titleUnderline} />
-          <Text style={styles.heroTagline}>Your Ayurvedic Health Companion</Text>
-          <Text style={styles.heroQuote}>
-            "When diet is wrong, medicine is of no use.{'\n'}When diet is correct, medicine is of no need."
-          </Text>
-          <Text style={styles.heroQuoteAuthor}>— Ayurvedic Proverb</Text>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.scroll} keyboardShouldPersistTaps="handled">
+
+        {/* ═══ Header ═══ */}
+        <Animated.View style={[s.header, { opacity: fadeAnim }]}>
+          <View>
+            <View style={s.greetRow}>
+              <Ionicons name={greeting.icon} size={16} color={theme.text.subtext} />
+              <Text style={s.greetText}>{greeting.text}</Text>
+            </View>
+            <Text style={s.largeTitle}>AyurSathi</Text>
+          </View>
+          <Image source={require('../assets/icon.png')} style={s.avatar} />
         </Animated.View>
 
-        {/* ═══ SEARCH: Main functional area ═══ */}
-        <Animated.View style={[styles.searchSection, { opacity: fadeAnim }]}>
-          <View style={styles.searchCard}>
-            <BlurView intensity={20} tint={mode === 'dark' ? 'dark' : 'light'} style={styles.searchBlur}>
-              <Text style={styles.searchLabel}>What's troubling you?</Text>
-              <View style={styles.searchInputRow}>
-                <Ionicons name="search" size={20} color={theme.primary} style={{ marginRight: 10 }} />
-                <TextInput
-                  style={styles.searchInput}
-                  placeholder="e.g. headache, cold, back pain..."
-                  placeholderTextColor={theme.text.subtext}
-                  value={query}
-                  onChangeText={setQuery}
-                  onSubmitEditing={() => handleSearch()}
-                  returnKeyType="search"
-                  selectionColor={theme.primary}
-                />
-              </View>
-              <TouchableOpacity
-                style={[styles.searchButton, !query.trim() && styles.searchButtonDisabled]}
-                onPress={() => handleSearch()}
-                disabled={!query.trim() || loading}
-                activeOpacity={0.8}
-              >
-                <LinearGradient
-                  colors={loading ? [theme.background.tertiary, theme.background.secondary] : [theme.primary, theme.primaryDark]}
-                  start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-                  style={styles.searchButtonGradient}
-                >
-                  {loading ? (
-                    <View style={styles.loadingRow}>
-                      <Ionicons name="sync" size={18} color={theme.text.body} style={{ marginRight: 8 }} />
-                      <Text style={[styles.searchButtonText, { color: theme.text.body }]}>Analyzing Symptoms...</Text>
-                    </View>
-                  ) : (
-                    <View style={styles.loadingRow}>
-                      <Ionicons name="sparkles" size={18} color={theme.background.primary} />
-                      <Text style={styles.searchButtonText}>  Find My Remedy</Text>
-                    </View>
-                  )}
-                </LinearGradient>
+        {/* ═══ AI Search Hero ═══ */}
+        <View style={s.searchHero}>
+          {/* AI Badge */}
+          <View style={s.aiBadge}>
+            <Ionicons name="sparkles" size={14} color="#FFF" />
+            <Text style={s.aiBadgeText}>AI-Powered Ayurvedic Search</Text>
+          </View>
+
+          <Text style={s.searchTitle}>What's troubling you?</Text>
+          <Text style={s.searchSub}>Describe your symptoms and our AI will find personalized Ayurvedic remedies, yoga, and lifestyle tips.</Text>
+
+          {/* Big Search Input */}
+          <View style={[s.searchInputWrap, query.length > 0 && s.searchInputActive]}>
+            <Ionicons name="search" size={20} color={query.length > 0 ? theme.primary : theme.text.subtext} />
+            <TextInput
+              style={s.searchInput}
+              placeholder="e.g. headache, stress, poor digestion..."
+              placeholderTextColor={theme.text.subtext + '90'}
+              value={query}
+              onChangeText={setQuery}
+              onSubmitEditing={() => search()}
+              returnKeyType="search"
+              selectionColor={theme.primary}
+              multiline={false}
+            />
+            {query.length > 0 && (
+              <TouchableOpacity onPress={() => setQuery('')} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
+                <Ionicons name="close-circle" size={20} color={theme.text.subtext} />
               </TouchableOpacity>
-            </BlurView>
+            )}
           </View>
-        </Animated.View>
 
-        {/* ═══ QUICK AILMENTS ═══ */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeaderRow}>
-            <Ionicons name="flash-outline" size={20} color={theme.primary} />
-            <Text style={styles.sectionTitle}>Common Ailments</Text>
-          </View>
-          <Text style={styles.sectionSubtitle}>Tap to instantly search</Text>
-          <View style={styles.ailmentsGrid}>
-            {QUICK_AILMENTS.map((item) => (
-              <TouchableOpacity
-                key={item.label}
-                style={styles.ailmentChip}
-                onPress={() => handleQuickAilment(item.label)}
-                activeOpacity={0.7}
-              >
-                <LinearGradient
-                  colors={[theme.glass, 'transparent']}
-                  style={styles.ailmentChipInner}
-                >
-                  <Text style={styles.ailmentEmoji}>{item.icon}</Text>
-                  <Text style={styles.ailmentLabel}>{item.label}</Text>
-                </LinearGradient>
+          {/* Big CTA Button */}
+          <TouchableOpacity
+            style={[s.ctaBtn, (!query.trim() || loading) && { opacity: 0.4 }]}
+            onPress={() => search()}
+            disabled={!query.trim() || loading}
+            activeOpacity={0.75}
+          >
+            {loading ? (
+              <Text style={s.ctaBtnText}>Consulting ancient wisdom...</Text>
+            ) : (
+              <>
+                <Ionicons name="sparkles" size={18} color="#FFF" style={{ marginRight: 8 }} />
+                <Text style={s.ctaBtnText}>Find My Remedy</Text>
+              </>
+            )}
+          </TouchableOpacity>
+
+          {/* Quick Suggestions */}
+          <View style={s.suggestRow}>
+            <Text style={s.suggestLabel}>Try:</Text>
+            {['Headache', 'Stress', 'Cold'].map(q => (
+              <TouchableOpacity key={q} style={s.suggestChip} onPress={() => { setQuery(q); search(q); }} activeOpacity={0.6}>
+                <Text style={s.suggestText}>{q}</Text>
               </TouchableOpacity>
             ))}
           </View>
         </View>
 
-        {/* ═══ FEATURES ═══ */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeaderRow}>
-            <Ionicons name="apps-outline" size={20} color={theme.primary} />
-            <Text style={styles.sectionTitle}>What We Offer</Text>
-          </View>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -24 }} contentContainerStyle={{ paddingHorizontal: 24 }}>
-            {FEATURES.map((f, i) => (
-              <View key={i} style={styles.featureCard}>
-                <LinearGradient colors={f.gradient} style={styles.featureGradient}>
-                  <View style={styles.featureIconCircle}>
-                    <Ionicons name={f.icon} size={28} color={theme.primary} />
-                  </View>
-                  <Text style={styles.featureTitle}>{f.title}</Text>
-                  <Text style={styles.featureDesc}>{f.desc}</Text>
-                </LinearGradient>
-              </View>
-            ))}
-          </ScrollView>
+        {/* ═══ Quick Heal ═══ */}
+        <SectionLabel label="Quick Heal" theme={theme} s={s} />
+        <View style={s.iosGroup}>
+          {AILMENTS.map((a, i) => (
+            <TouchableOpacity
+              key={a.label}
+              style={[s.listRow, i < AILMENTS.length - 1 && s.listRowBorder]}
+              onPress={() => { setQuery(a.label); search(a.label); }}
+              activeOpacity={0.5}
+            >
+              <Text style={s.listEmoji}>{a.icon}</Text>
+              <Text style={s.listLabel}>{a.label}</Text>
+              <Ionicons name="chevron-forward" size={16} color={theme.text.subtext + '60'} />
+            </TouchableOpacity>
+          ))}
         </View>
 
-        {/* ═══ HOW IT WORKS ═══ */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeaderRow}>
-            <Ionicons name="git-network-outline" size={20} color={theme.primary} />
-            <Text style={styles.sectionTitle}>How It Works</Text>
-          </View>
-          <View style={styles.stepsContainer}>
-            {STEPS.map((step, i) => (
-              <View key={i} style={styles.stepRow}>
-                <View style={styles.stepTimeline}>
-                  <LinearGradient colors={[theme.primary, theme.primaryDark]} style={styles.stepDot}>
-                    <Ionicons name={step.icon} size={20} color={theme.background.primary} />
-                  </LinearGradient>
-                  {i < STEPS.length - 1 && <View style={styles.stepLine} />}
-                </View>
-                <View style={styles.stepContent}>
-                  <Text style={styles.stepNumber}>STEP {i + 1}</Text>
-                  <Text style={styles.stepTitle}>{step.title}</Text>
-                  <Text style={styles.stepDesc}>{step.desc}</Text>
-                </View>
-              </View>
-            ))}
-          </View>
-        </View>
-
-        {/* ═══ AYURVEDA INFO ═══ */}
-        <View style={styles.section}>
-          <View style={styles.infoCard}>
-            <BlurView intensity={10} tint={mode === 'dark' ? 'light' : 'dark'} style={styles.infoBlur}>
-              <View style={styles.infoHeader}>
-                <Text style={styles.infoEmoji}>🙏</Text>
-                <Text style={styles.infoTitle}>The Wisdom of Ayurveda</Text>
-              </View>
-              <Text style={styles.infoText}>
-                Ayurveda, the "Science of Life", is a 5,000-year-old system of natural healing originating
-                in the Vedic culture of India. It emphasizes balance in body, mind, and spirit through diet,
-                herbal remedies, yoga, and lifestyle practices.
-              </Text>
-              <View style={styles.infoBullets}>
-                {[
-                  { icon: 'time-outline', text: '5,000+ years of proven wisdom' },
-                  { icon: 'globe-outline', text: 'Recognized by WHO as traditional medicine' },
-                  { icon: 'fitness-outline', text: 'Holistic mind-body-spirit approach' },
-                  { icon: 'leaf-outline', text: '100% natural herbal formulations' },
-                ].map((b, i) => (
-                  <View key={i} style={styles.infoBulletRow}>
-                    <Ionicons name={b.icon} size={16} color={theme.secondary} />
-                    <Text style={styles.infoBulletText}>{b.text}</Text>
-                  </View>
+        {/* ═══ Daily Tip ═══ */}
+        <SectionLabel label="Daily Wellness" theme={theme} s={s} />
+        <View style={s.iosGroup}>
+          <View style={s.tipRow}>
+            <Text style={{ fontSize: 32 }}>{tip.emoji}</Text>
+            <View style={s.tipBody}>
+              <Text style={s.tipTag}>{tip.tag}</Text>
+              <Text style={s.tipText}>{tip.tip}</Text>
+              <View style={s.dots}>
+                {TIPS.map((_, i) => (
+                  <View key={i} style={[s.dot, i === tipIdx && s.dotOn]} />
                 ))}
               </View>
-            </BlurView>
+            </View>
           </View>
         </View>
 
-        {/* ═══ FOOTER ═══ */}
-        <View style={styles.footer}>
-          <View style={styles.footerDivider} />
-          <Ionicons name="leaf-outline" size={20} color={theme.text.subtext} />
-          <Text style={styles.footerText}>Made with ❤️ by Ayush Thakur</Text>
-          <Text style={styles.footerSub}>AyurSathi v1.0 • Professional Edition</Text>
+        {/* ═══ Know Your Dosha ═══ */}
+        <SectionLabel label="Know Your Dosha" theme={theme} s={s} />
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -20 }} contentContainerStyle={{ paddingHorizontal: 20 }}>
+          {DOSHAS.map((d) => (
+            <View key={d.name} style={s.doshaCard}>
+              <Text style={{ fontSize: 34, marginBottom: 8 }}>{d.emoji}</Text>
+              <Text style={s.doshaName}>{d.name}</Text>
+              <Text style={s.doshaEl}>{d.element}</Text>
+              <View style={[s.doshaDivider, { backgroundColor: theme.separator }]} />
+              {d.traits.map((t, i) => (
+                <View key={i} style={s.traitRow}>
+                  <View style={[s.traitDot, { backgroundColor: d.color }]} />
+                  <Text style={s.traitText}>{t}</Text>
+                </View>
+              ))}
+            </View>
+          ))}
+        </ScrollView>
+
+        {/* ═══ How It Works ═══ */}
+        <SectionLabel label="How It Works" theme={theme} s={s} />
+        <View style={s.iosGroup}>
+          {[
+            { num: '1', icon: 'chatbubble', title: 'Describe', sub: 'Tell us your health concern' },
+            { num: '2', icon: 'sparkles', title: 'AI Analyzes', sub: 'We scan Ayurvedic knowledge' },
+            { num: '3', icon: 'heart-circle', title: 'Get Healed', sub: 'Receive personalized remedies' },
+          ].map((step, i, arr) => (
+            <View key={i} style={[s.stepRow, i < arr.length - 1 && s.listRowBorder]}>
+              <View style={[s.stepBadge, { backgroundColor: theme.primary }]}>
+                <Text style={s.stepNum}>{step.num}</Text>
+              </View>
+              <View style={s.stepBody}>
+                <Text style={s.stepTitle}>{step.title}</Text>
+                <Text style={s.stepSub}>{step.sub}</Text>
+              </View>
+            </View>
+          ))}
         </View>
+
+        {/* ═══ Disclaimer ═══ */}
+        <View style={s.disclaimer}>
+          <Ionicons name="shield-checkmark-outline" size={14} color={theme.warning} />
+          <Text style={s.disclaimerText}>
+            AyurSathi provides wellness information only. Always consult a healthcare professional.
+          </Text>
+        </View>
+
+        {/* ═══ Footer ═══ */}
+        <View style={s.footer}>
+          <Text style={s.footerText}>Made with ❤️ by Ayush Thakur</Text>
+        </View>
+
       </ScrollView>
     </View>
   );
 }
 
-// ─────────────────────── STYLES GENERATOR ───────────────────────
-const createStyles = (theme) => StyleSheet.create({
-  container: { flex: 1, backgroundColor: theme.background.primary },
-  scrollContent: { paddingBottom: 40 },
+const SectionLabel = ({ label, theme, s }) => (
+  <Text style={s.sectionLabel}>{label}</Text>
+);
 
-  // ─ Theme Toggle
-  themeToggle: {
-    position: 'absolute', top: 52, right: 24, zIndex: 100,
-    borderRadius: 20, overflow: 'hidden',
+const mk = (t) => StyleSheet.create({
+  root: { flex: 1, backgroundColor: t.background.secondary },
+  scroll: { paddingHorizontal: 20, paddingBottom: 30 },
+
+  // Header — iOS large title style
+  header: {
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start',
+    paddingTop: Platform.OS === 'ios' ? 64 : 48, marginBottom: 16,
   },
-  themeToggleInner: {
-    width: 40, height: 40, justifyContent: 'center', alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.1)',
+  greetRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 2 },
+  greetText: { fontSize: 13, color: t.text.subtext, marginLeft: 5, fontWeight: '500' },
+  largeTitle: { fontSize: 34, fontWeight: '800', color: t.text.header, letterSpacing: 0.4 },
+  avatar: { width: 40, height: 40, borderRadius: 20, marginTop: 4, backgroundColor: t.background.tertiary },
+
+  // AI Search Hero
+  searchHero: {
+    backgroundColor: '#FFFFFF', borderRadius: 20, padding: 22, marginBottom: 8,
+    ...Platform.select({
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.07, shadowRadius: 16 },
+      android: { elevation: 4 },
+    }),
+  },
+  aiBadge: {
+    flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', gap: 6,
+    backgroundColor: t.primary, paddingHorizontal: 12, paddingVertical: 5, borderRadius: 20, marginBottom: 14,
+  },
+  aiBadgeText: { fontSize: 12, fontWeight: '600', color: '#FFF', letterSpacing: 0.2 },
+  searchTitle: { fontSize: 22, fontWeight: '700', color: t.text.header, marginBottom: 6 },
+  searchSub: { fontSize: 14, color: t.text.subtext, lineHeight: 20, marginBottom: 18 },
+
+  searchInputWrap: {
+    flexDirection: 'row', alignItems: 'center', gap: 10,
+    backgroundColor: t.background.secondary, borderRadius: 14, paddingHorizontal: 16, paddingVertical: 14,
+    borderWidth: 2, borderColor: 'transparent', marginBottom: 12,
+  },
+  searchInputActive: { borderColor: t.primary + '30', backgroundColor: t.primary + '04' },
+  searchInput: { flex: 1, fontSize: 17, color: t.text.header, paddingVertical: 0 },
+
+  ctaBtn: {
+    backgroundColor: t.primary, borderRadius: 16, paddingVertical: 18,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 14,
+  },
+  ctaBtnText: { color: '#FFF', fontSize: 18, fontWeight: '700' },
+
+  suggestRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  suggestLabel: { fontSize: 13, color: t.text.subtext, fontWeight: '500' },
+  suggestChip: {
+    backgroundColor: t.background.secondary, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20,
+  },
+  suggestText: { fontSize: 13, color: t.primary, fontWeight: '600' },
+
+  // Section Label — iOS grouped table header
+  sectionLabel: {
+    fontSize: 13, fontWeight: '600', color: t.text.subtext,
+    textTransform: 'uppercase', letterSpacing: 0.5,
+    marginTop: 28, marginBottom: 8, marginLeft: 4,
   },
 
-  // ─ Hero
-  heroSection: { alignItems: 'center', paddingTop: 70, paddingBottom: 10, paddingHorizontal: 24 },
-  glowCircle: {
-    position: 'absolute', top: 50, width: 160, height: 160, borderRadius: 80,
-    backgroundColor: 'rgba(26, 115, 232, 0.04)', // Subtle Google Blue glow
+  // iOS grouped card (like Settings rows)
+  iosGroup: {
+    backgroundColor: '#FFFFFF', borderRadius: 12, overflow: 'hidden',
+    ...Platform.select({
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.03, shadowRadius: 6 },
+      android: { elevation: 1 },
+    }),
   },
-  iconCircle: {
-    width: 80, height: 80, borderRadius: 40,
-    justifyContent: 'center', alignItems: 'center',
-    backgroundColor: '#FFF', // White background for clean look
-    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 8,
-    elevation: 4,
-    borderWidth: 1, borderColor: theme.border,
-  },
-  heroTitle: {
-    fontSize: 44, fontWeight: '800', color: theme.text.header, marginTop: 16,
-    letterSpacing: 1,
-  },
-  titleUnderline: {
-    width: 60, height: 3, backgroundColor: theme.primary, borderRadius: 2,
-    marginTop: 8, marginBottom: 12,
-  },
-  heroTagline: { fontSize: 16, color: theme.text.body, fontWeight: '500', letterSpacing: 0.5 },
-  heroQuote: {
-    fontSize: 13, color: theme.text.subtext, fontStyle: 'italic',
-    textAlign: 'center', marginTop: 20, lineHeight: 20, paddingHorizontal: 20,
-  },
-  heroQuoteAuthor: { fontSize: 12, color: theme.secondary, marginTop: 6 },
 
-  // ─ Search
-  searchSection: { paddingHorizontal: 24, marginTop: 30, marginBottom: 10 },
-  searchCard: {
-    borderRadius: 24, overflow: 'hidden',
-    borderWidth: 1, borderColor: theme.border,
-    backgroundColor: theme.glass, // Dynamic glass
+  // List Row
+  listRow: {
+    flexDirection: 'row', alignItems: 'center', paddingVertical: 13, paddingHorizontal: 16,
   },
-  searchBlur: { padding: 20 },
-  searchLabel: { fontSize: 14, color: theme.secondary, fontWeight: '600', marginBottom: 12, letterSpacing: 0.3 },
-  searchInputRow: {
-    flexDirection: 'row', alignItems: 'center',
-    backgroundColor: theme.input, borderRadius: 16, paddingHorizontal: 16, paddingVertical: 14,
-    borderWidth: 1, borderColor: theme.border,
+  listRowBorder: {
+    borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.separator,
   },
-  searchInput: { flex: 1, fontSize: 16, color: theme.text.header },
-  searchButton: { marginTop: 14, borderRadius: 16, overflow: 'hidden' },
-  searchButtonDisabled: { opacity: 0.6 },
-  searchButtonGradient: { paddingVertical: 16, alignItems: 'center', borderRadius: 16 },
-  searchButtonText: { color: theme.background.primary, fontSize: 16, fontWeight: '700' },
-  loadingRow: { flexDirection: 'row', alignItems: 'center' },
+  listEmoji: { fontSize: 22, marginRight: 14, width: 28, textAlign: 'center' },
+  listLabel: { flex: 1, fontSize: 17, color: t.text.header },
 
-  // ─ Sections
-  section: { paddingHorizontal: 24, marginTop: 36 },
-  sectionHeaderRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
-  sectionTitle: { fontSize: 20, fontWeight: '700', color: theme.text.header, marginLeft: 8 },
-  sectionSubtitle: { fontSize: 13, color: theme.text.subtext, marginBottom: 16, marginLeft: 28 },
+  // Tip
+  tipRow: { flexDirection: 'row', padding: 16, alignItems: 'flex-start' },
+  tipBody: { flex: 1, marginLeft: 14 },
+  tipTag: { fontSize: 11, fontWeight: '600', color: t.primary, textTransform: 'uppercase', letterSpacing: 0.3, marginBottom: 4 },
+  tipText: { fontSize: 15, color: t.text.body, lineHeight: 22 },
+  dots: { flexDirection: 'row', marginTop: 12, gap: 4 },
+  dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: t.background.tertiary },
+  dotOn: { width: 20, backgroundColor: t.primary, borderRadius: 3 },
 
-  // ─ Ailments Grid
-  ailmentsGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
-  ailmentChip: { width: (width - 64) / 2, marginBottom: 12 },
-  ailmentChipInner: {
-    flexDirection: 'row', alignItems: 'center', paddingVertical: 14, paddingHorizontal: 14,
-    borderRadius: 16, borderWidth: 1, borderColor: theme.border,
-    backgroundColor: theme.background.tertiary,
+  // Dosha Cards
+  doshaCard: {
+    width: 150, marginRight: 10, borderRadius: 16, padding: 16,
+    backgroundColor: '#FFFFFF',
+    ...Platform.select({
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 8 },
+      android: { elevation: 1 },
+    }),
   },
-  ailmentEmoji: { fontSize: 20, marginRight: 10 },
-  ailmentLabel: { fontSize: 14, color: theme.text.body, fontWeight: '500' },
+  doshaName: { fontSize: 20, fontWeight: '700', color: t.text.header },
+  doshaEl: { fontSize: 12, color: t.text.subtext, marginTop: 1 },
+  doshaDivider: { height: StyleSheet.hairlineWidth, marginVertical: 10 },
+  traitRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 4 },
+  traitDot: { width: 5, height: 5, borderRadius: 3, marginRight: 8 },
+  traitText: { fontSize: 13, color: t.text.body },
 
-  // ─ Features
-  featureCard: { width: width * 0.62, marginRight: 14, borderRadius: 24, overflow: 'hidden', borderWidth: 1, borderColor: theme.border },
-  featureGradient: { padding: 22, borderRadius: 24, minHeight: 180, justifyContent: 'center' },
-  featureIconCircle: {
-    width: 50, height: 50, borderRadius: 25,
-    backgroundColor: 'rgba(255,255,255,0.05)', justifyContent: 'center', alignItems: 'center',
-    marginBottom: 14,
-    borderWidth: 1, borderColor: theme.border
+  // Steps
+  stepRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 14, paddingHorizontal: 16 },
+  stepBadge: { width: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center', marginRight: 14 },
+  stepNum: { color: '#FFF', fontWeight: '700', fontSize: 13 },
+  stepBody: { flex: 1 },
+  stepTitle: { fontSize: 17, fontWeight: '600', color: t.text.header },
+  stepSub: { fontSize: 13, color: t.text.subtext, marginTop: 1 },
+
+  // Disclaimer
+  disclaimer: {
+    flexDirection: 'row', alignItems: 'flex-start', gap: 8,
+    marginTop: 28, paddingHorizontal: 4,
   },
-  featureTitle: { fontSize: 18, fontWeight: '700', color: theme.text.header, marginBottom: 6 },
-  featureDesc: { fontSize: 13, color: theme.text.body, lineHeight: 19 },
+  disclaimerText: { flex: 1, fontSize: 12, color: t.text.subtext, lineHeight: 17 },
 
-  // ─ Steps
-  stepsContainer: { marginTop: 12 },
-  stepRow: { flexDirection: 'row', marginBottom: 0 },
-  stepTimeline: { alignItems: 'center', width: 48 },
-  stepDot: {
-    width: 42, height: 42, borderRadius: 21,
-    justifyContent: 'center', alignItems: 'center',
-    borderWidth: 1, borderColor: theme.border
-  },
-  stepLine: { width: 2, flex: 1, backgroundColor: theme.border, marginVertical: 4 },
-  stepContent: { flex: 1, paddingLeft: 14, paddingBottom: 28 },
-  stepNumber: { fontSize: 11, color: theme.primary, fontWeight: '700', letterSpacing: 1.5, marginBottom: 2 },
-  stepTitle: { fontSize: 18, fontWeight: '700', color: theme.text.header, marginBottom: 4 },
-  stepDesc: { fontSize: 13, color: theme.text.subtext, lineHeight: 19 },
-
-  // ─ Info
-  infoCard: { borderRadius: 24, overflow: 'hidden', borderWidth: 1, borderColor: theme.border, backgroundColor: theme.glass },
-  infoBlur: { padding: 22 },
-  infoHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
-  infoEmoji: { fontSize: 24, marginRight: 10 },
-  infoTitle: { fontSize: 18, fontWeight: '700', color: theme.text.header },
-  infoText: { fontSize: 14, color: theme.text.body, lineHeight: 22, marginBottom: 16 },
-  infoBullets: {},
-  infoBulletRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
-  infoBulletText: { fontSize: 13, color: theme.secondary, marginLeft: 10 },
-
-  // ─ Footer
-  footer: { alignItems: 'center', marginTop: 44, paddingBottom: 20 },
-  footerDivider: {
-    width: 40, height: 2, backgroundColor: theme.border,
-    borderRadius: 1, marginBottom: 16,
-  },
-  footerText: { fontSize: 13, color: theme.text.subtext, marginTop: 8 },
-  footerSub: { fontSize: 11, color: theme.background.tertiary, marginTop: 4 }, // Subtle
+  // Footer
+  footer: { alignItems: 'center', marginTop: 24, paddingBottom: 10 },
+  footerText: { fontSize: 12, color: t.text.subtext },
 });

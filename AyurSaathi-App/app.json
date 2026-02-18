@@ -2,7 +2,7 @@
   "expo": {
     "name": "AyurSaathi",
     "slug": "ayursaathi-app",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
@@ -15,7 +15,7 @@
     "updates": {
       "url": "https://u.expo.dev/d84ba0bb-41a0-4068-a65c-2e47139a6bca"
     },
-    "runtimeVersion": "1.0.0",
+    "runtimeVersion": "1.1.0",
     "ios": {
       "supportsTablet": true
     },
