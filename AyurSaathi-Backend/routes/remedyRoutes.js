@@ -157,40 +157,17 @@ const generateAIResponse = async (disease, retries = 3) => {
   });
   console.log("Generating AI response using model: gemini-2.5-flash");
 
-  const prompt = `You are an expert in Ayurveda, Yoga, and traditional Indian wellness practices.
-
-A user is seeking Ayurvedic remedies and holistic wellness advice for: "${disease}"
-
-Provide a comprehensive, authentic response with:
-1. An "Ayurvedic Analysis" explaining the Dosha imbalance (Vata/Pitta/Kapha) and why the condition occurs according to Ayurveda.
-2. A practical health tip specific to this condition.
-3. At least 2-3 detailed home remedies with full ingredients and step-by-step preparation.
-4. At least 2 yoga asanas/pranayama exercises that help with this condition, with clear instructions.
-5. Professional doctor advice about when to seek medical help.
-
-Return ONLY valid JSON with this exact schema:
+  const prompt = `Act as an Ayurvedic expert. Provide a JSON response for condition: "${disease}".
+Schema:
 {
   "diseaseName": "${disease}",
-  "ayurvedicAnalysis": "Explanation of the Dosha imbalance and Ayurvedic perspective on this condition (2-3 sentences)",
-  "healthTip": "A specific, actionable health tip for this condition",
-  "homeRemedies": [
-    {
-      "remedyName": "Name of the remedy",
-      "ingredients": ["ingredient 1 with quantity", "ingredient 2 with quantity"],
-      "preparationSteps": ["Step 1", "Step 2", "Step 3"]
-    }
-  ],
-  "yoga": [
-    {
-      "asanaName": "Name of the asana or pranayama",
-      "howToDo": ["Step 1", "Step 2", "Step 3"],
-      "duration": "recommended duration",
-      "imageKeyword": "short 2-3 word English keyword for this yoga pose suitable for image search e.g. cobra pose yoga",
-      "youtubeSearchQuery": "YouTube search query for this yoga pose e.g. Bhujangasana cobra pose yoga tutorial"
-    }
-  ],
-  "doctorAdvice": "When to consult a doctor for this condition"
-}`;
+  "ayurvedicAnalysis": "Dosha imbalance explanation (2 sentences)",
+  "healthTip": "Actionable tip",
+  "homeRemedies": [{"remedyName": "", "ingredients": [], "preparationSteps": []}],
+  "yoga": [{"asanaName": "", "howToDo": [], "duration": "", "imageKeyword": "2-3 word English visual keyword", "youtubeSearchQuery": "search query"}],
+  "doctorAdvice": "When to see a doctor"
+}
+Keep it concise and authentic.`;
 
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
@@ -969,17 +946,19 @@ router.get("/:disease", async (req, res) => {
         const aiResponse = await generateAIResponse(disease);
         aiResponse.diseaseName = disease;
 
-        // Save to MongoDB for future use
-        try {
-          const newRemedy = new Remedy(aiResponse);
-          await newRemedy.save();
-          console.log("Saved AI response to MongoDB");
-        } catch (saveErr) {
-          console.error(
-            "Failed to save to MongoDB (non-fatal):",
-            saveErr.message,
-          );
-        }
+        // Save to MongoDB for future use - NON-BLOCKING
+        (async () => {
+          try {
+            const newRemedy = new Remedy(aiResponse);
+            await newRemedy.save();
+            console.log("Saved AI response to MongoDB");
+          } catch (saveErr) {
+            console.error(
+              "Failed to save to MongoDB (non-fatal):",
+              saveErr.message,
+            );
+          }
+        })();
 
         // Cache it
         remediesCache[disease] = aiResponse;
