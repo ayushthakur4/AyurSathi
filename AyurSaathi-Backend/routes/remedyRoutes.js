@@ -147,10 +147,10 @@ const MOCK_RESPONSES = {
   },
 };
 
-// Helper: delay for retry
+// wait for retry
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-// Language name mapping for AI prompt
+// valid languages
 const LANG_NAMES = {
   en: 'English', hi: 'Hindi', bn: 'Bengali', te: 'Telugu', ta: 'Tamil',
   mr: 'Marathi', gu: 'Gujarati', kn: 'Kannada', ml: 'Malayalam',
@@ -163,7 +163,7 @@ const generateAIResponse = async (disease, lang = 'en', retries = 3) => {
     generationConfig: { responseMimeType: "application/json" },
   });
   const langName = LANG_NAMES[lang] || 'English';
-  console.log(`Generating AI response in ${langName} using model: gemini-2.5-flash`);
+  console.log(`asking gemini in ${langName}`);
 
   const langInstruction = lang !== 'en'
     ? `IMPORTANT: Write ALL text values in ${langName} script/language. Only keep JSON keys, imageKeyword, and youtubeSearchQuery in English.`
@@ -206,10 +206,10 @@ Keep it concise and authentic.`;
         throw new Error("Incomplete AI response - missing required fields");
       }
 
-      console.log("AI response generated and parsed successfully.");
+      console.log("got response from ai");
       return parsed;
     } catch (err) {
-      console.error(`Gemini attempt ${attempt + 1} failed:`, err.message);
+      console.error(`gemini failed attempt ${attempt + 1}:`, err.message);
 
       // Log safety ratings or other details if available
       if (err.response && err.response.promptFeedback) {
@@ -224,9 +224,7 @@ Keep it concise and authentic.`;
           err.message.includes("overloaded"))
       ) {
         const waitTime = (attempt + 1) * 10000; // 10s, 20s, 30s
-        console.log(
-          `Rate limited. Waiting ${waitTime / 1000}s before retry...`,
-        );
+        console.log("rate limit hit, waiting...");
         await delay(waitTime);
       } else {
         throw err;
@@ -235,7 +233,7 @@ Keep it concise and authentic.`;
   }
 };
 
-// Mock Data kept ONLY as fallback when AI is unavailable
+// fallback mock data
 const FALLBACK_MOCK_RESPONSES = {
   ...MOCK_RESPONSES,
   "cold & flu": {
@@ -929,48 +927,48 @@ router.get("/:disease", async (req, res) => {
   try {
     const disease = req.params.disease.toLowerCase().trim();
     const lang = (req.query.lang || 'en').toLowerCase().trim();
-    console.log(`Searching for: ${disease} (lang: ${lang})`);
+    console.log(`searching for ${disease} in ${lang}`);
     const cacheKey = `${disease}_${lang}`;
 
-    // 1. Check in-memory cache first (instant)
+    // check cache
     if (remediesCache[cacheKey]) {
-      console.log("Found in cache");
+      console.log("found in cache");
       return res.json(remediesCache[cacheKey]);
     }
 
-    // 2. Check MongoDB (with error handling) — only for English (cached results are in English)
+    // check database for english only
     if (lang === 'en') {
       try {
         let remedy = await Remedy.findOne({ diseaseName: disease });
         if (remedy) {
-          console.log("Found in MongoDB");
+          console.log("found in db");
           remediesCache[cacheKey] = remedy;
           return res.json(remedy);
         }
       } catch (dbError) {
-        console.warn("MongoDB read failed (skipping):", dbError.message);
+        console.warn("db read error:", dbError.message);
       }
     }
 
-    // 3. Try Gemini AI FIRST (primary source for all diseases)
+    // try ai generation
     if (
       process.env.GEMINI_API_KEY &&
       process.env.GEMINI_API_KEY !== "your_gemini_api_key_here"
     ) {
       try {
-        console.log(`Querying Gemini AI for: ${disease} (lang: ${lang})`);
+        console.log(`querying ai for ${disease}`);
         const aiResponse = await generateAIResponse(disease, lang);
         aiResponse.diseaseName = disease;
 
-        // Save to MongoDB for future use - NON-BLOCKING
+        // save to db for later
         (async () => {
           try {
             const newRemedy = new Remedy(aiResponse);
             await newRemedy.save();
-            console.log("Saved AI response to MongoDB");
+            console.log("saved to db");
           } catch (saveErr) {
             console.error(
-              "Failed to save to MongoDB (non-fatal):",
+              "db save failed:",
               saveErr.message,
             );
           }
@@ -983,21 +981,22 @@ router.get("/:disease", async (req, res) => {
       } catch (aiError) {
         console.error("Gemini AI failed:", aiError.message);
         return res.status(500).json({ error: "AI Generation failed and mock data is disabled." });
-        // Fall through to mock fallback
+        // fallback to mock data
       }
     } else {
       console.log("No valid GEMINI_API_KEY configured");
       return res.status(500).json({ error: "No API Key configured." });
     }
 
-    // 4. Fallback: Check Mock Data (only used when AI fails)
-    // if (FALLBACK_MOCK_RESPONSES[disease]) {
-    //   console.log("AI unavailable, returning mock fallback for:", disease);
-    //   return res.json(FALLBACK_MOCK_RESPONSES[disease]);
-    // }
+    // fallback to mock data
+    console.log("ai failed, using mock data");
+    if (FALLBACK_MOCK_RESPONSES[disease]) {
+      console.log("using mock response for " + disease);
+      return res.json(FALLBACK_MOCK_RESPONSES[disease]);
+    }
 
-    // 5. Generic Fallback (when AI fails and no mock data exists)
-    console.log("Using generic fallback for:", disease);
+    // generic fallback
+    console.log("using generic fallback");
     const fallbackResponse = {
       diseaseName: disease,
       healthTip:
@@ -1046,7 +1045,7 @@ router.get("/:disease", async (req, res) => {
 
     res.json(fallbackResponse);
   } catch (error) {
-    console.error("Server Error:", error.message);
+    console.error("server error:", error.message);
     res.status(500).json({ error: "Something went wrong. Please try again." });
   }
 });

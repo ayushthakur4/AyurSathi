@@ -1,7 +1,6 @@
 require("dotenv").config();
 
-// Fix DNS resolution for MongoDB Atlas SRV records
-// Some networks/ISPs block or fail to resolve SRV records
+// fix dns issues for mongodb atlas
 const dns = require("dns");
 dns.setServers(["8.8.8.8", "8.8.4.4", "1.1.1.1"]);
 
@@ -14,51 +13,48 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// connect to mongo
 const mongoose = require("mongoose");
-
-// Connect to MongoDB Atlas
-// Connect to MongoDB Atlas
 const mongoURI = process.env.MONGODB_URI;
 
 if (!mongoURI) {
-  console.error("❌ MONGODB_URI is not defined in environment variables.");
-  // In production, we want to fail fast. In dev, we might tolerate it but it's risky.
+  console.error("missing mongodb uri in env");
   if (process.env.NODE_ENV === "production") {
     process.exit(1);
   }
 }
 
-console.log("Connecting to MongoDB...");
+console.log("connecting to mongodb...");
 
 mongoose
   .connect(mongoURI, {
-    serverSelectionTimeoutMS: 30000, // 30s
-    connectTimeoutMS: 45000, // 45s
-    socketTimeoutMS: 60000, // 60s
+    serverSelectionTimeoutMS: 30000,
+    connectTimeoutMS: 45000,
+    socketTimeoutMS: 60000,
   })
-  .then(() => console.log("MongoDB Connected successfully....."))
+  .then(() => console.log("connected to mongodb"))
   .catch((err) => {
-    console.error("❌ MongoDB Connection Error:", err.message);
-    // Avoid logging full URI with credentials
+    console.error("failed to connect to mongo:", err.message);
   });
 
 mongoose.connection.on("disconnected", () =>
-  console.log("⚠️ MongoDB disconnected"),
+  console.log("mongodb disconnected"),
 );
 mongoose.connection.on("reconnected", () =>
-  console.log("✅ MongoDB reconnected"),
+  console.log("mongodb reconnected"),
 );
 
-// Health-check route
+// simple health check
 app.get("/", (req, res) => {
-  res.json({ status: "ok", message: "AyurSathi API is running 🌿" });
+  res.json({ status: "ok", message: "api is running" });
 });
 
-// ─── App Version / Update Check ───
+// check app version
 app.get("/api/version", (req, res) => {
   res.json({
     latestVersion: "1.1.0",
-    minVersion: "1.0.0",        // Force-update below this
+    latestVersion: "1.1.0",
+    minVersion: "1.0.0",
     releaseNotes: [
       "✨ Brand new Apple-inspired UI",
       "🤖 Faster AI-powered search",
@@ -74,5 +70,5 @@ app.use("/api/remedies", remedyRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, "0.0.0.0", () =>
-  console.log(`Server running on port ${PORT}`),
+  console.log(`server started on port ${PORT}`),
 );

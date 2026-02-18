@@ -96,7 +96,7 @@ export default function SettingsScreen({ navigation }) {
 
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.scroll}>
 
-                {/* ═══ App Info Card ═══ */}
+                {/* app info */}
                 <View style={s.appCard}>
                     <LinearGradient colors={['#007AFF', '#5856D6']} style={s.appIcon}>
                         <Ionicons name="leaf" size={28} color="#FFF" />
@@ -106,10 +106,10 @@ export default function SettingsScreen({ navigation }) {
                     <Text style={s.appTag}>Your Ayurvedic Companion</Text>
                 </View>
 
-                {/* ═══ UPDATE SECTION ═══ */}
+                {/* update section */}
                 <Text style={s.secLabel}>SOFTWARE UPDATE</Text>
                 <View style={s.group}>
-                    {/* Status Display */}
+                    {/* show update status */}
                     {updateStatus === 'latest' && (
                         <View style={s.statusRow}>
                             <View style={s.statusIcon}>
@@ -146,7 +146,7 @@ export default function SettingsScreen({ navigation }) {
                         </View>
                     )}
 
-                    {/* Check / Download / Restart Button */}
+                    {/* action buttons */}
                     {updateStatus === 'available' && !downloading ? (
                         <TouchableOpacity style={s.updateAction} onPress={downloadUpdate} activeOpacity={0.7}>
                             <LinearGradient colors={['#007AFF', '#5856D6']} style={s.updateBtnGrad}>
@@ -177,6 +177,7 @@ export default function SettingsScreen({ navigation }) {
                         </TouchableOpacity>
                     )}
 
+                    {/* download progress */}
                     {downloading && (
                         <View style={s.downloadingRow}>
                             <ActivityIndicator size="small" color="#007AFF" />
@@ -185,7 +186,7 @@ export default function SettingsScreen({ navigation }) {
                     )}
                 </View>
 
-                {/* ═══ LANGUAGE SECTION ═══ */}
+                {/* language settings */}
                 <Text style={s.secLabel}>LANGUAGE</Text>
                 <View style={s.group}>
                     <TouchableOpacity
@@ -223,7 +224,7 @@ export default function SettingsScreen({ navigation }) {
                     ))}
                 </View>
 
-                {/* ═══ GENERAL SECTION ═══ */}
+                {/* general settings */}
                 <Text style={s.secLabel}>GENERAL</Text>
                 <View style={s.group}>
                     <SettingsRow icon="information-circle-outline" label="About AyurSathi" color="#007AFF" s={s}
@@ -232,7 +233,7 @@ export default function SettingsScreen({ navigation }) {
                         onPress={() => Alert.alert('Privacy', 'AyurSathi does not collect or store any personal health data. All queries are processed in real-time and not saved.')} />
                 </View>
 
-                {/* ═══ SUPPORT SECTION ═══ */}
+                {/* support links */}
                 <Text style={s.secLabel}>SUPPORT</Text>
                 <View style={s.group}>
                     <SettingsRow icon="star-outline" label="Rate the App" color="#FF9500" s={s}
@@ -243,7 +244,7 @@ export default function SettingsScreen({ navigation }) {
                         onPress={() => Linking.openURL('https://github.com/ayushthakur4')} />
                 </View>
 
-                {/* Footer */}
+                {/* footer */}
                 <View style={s.footer}>
                     <Text style={s.footerText}>Made with ❤️ by Ayush Thakur</Text>
                     <Text style={s.footerVersion}>AyurSathi v{APP_VERSION} • Expo SDK {Constants.expoConfig?.sdkVersion || '52'}</Text>
@@ -254,7 +255,7 @@ export default function SettingsScreen({ navigation }) {
     );
 }
 
-// ── Helpers ──
+// helper functions
 function compareSemver(a, b) {
     const pa = a.split('.').map(Number);
     const pb = b.split('.').map(Number);
@@ -275,7 +276,7 @@ const SettingsRow = ({ icon, label, color, s, last, onPress }) => (
     </TouchableOpacity>
 );
 
-// ── Styles ──
+// styles
 const mk = (t) => StyleSheet.create({
     root: { flex: 1, backgroundColor: t.background.secondary },
     scroll: { paddingHorizontal: 20, paddingBottom: 40 },

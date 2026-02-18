@@ -21,7 +21,7 @@ import Constants from 'expo-constants';
 const Stack = createNativeStackNavigator();
 const APP_VERSION = Constants.expoConfig?.version || '1.0.0';
 
-// ─── Compare semver: returns 1 if a>b, -1 if a<b, 0 if equal ───
+// compare two version strings
 function compareSemver(a, b) {
   const pa = a.split('.').map(Number);
   const pb = b.split('.').map(Number);
@@ -32,9 +32,7 @@ function compareSemver(a, b) {
   return 0;
 }
 
-// ══════════════════════════════════════
-// Splash Screen
-// ══════════════════════════════════════
+// splash screen component
 function SplashScreen() {
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
   const scaleAnim = React.useRef(new Animated.Value(0.9)).current;
@@ -62,9 +60,7 @@ function SplashScreen() {
   );
 }
 
-// ══════════════════════════════════════
-// Update Modal
-// ══════════════════════════════════════
+// modal for app updates
 function UpdateModal({ visible, onDismiss, updateInfo }) {
   if (!updateInfo) return null;
 
@@ -181,9 +177,7 @@ const us = StyleSheet.create({
   mandatoryText: { fontSize: 12, color: '#FF9500', fontWeight: '500' },
 });
 
-// ══════════════════════════════════════
-// App Content
-// ══════════════════════════════════════
+// main app logic
 function AppContent() {
   const { theme } = useTheme();
   const [showSplash, setShowSplash] = React.useState(true);
@@ -191,10 +185,10 @@ function AppContent() {
   const [updateInfo, setUpdateInfo] = React.useState(null);
 
   React.useEffect(() => {
-    // Splash timer
+    // hide splash after 2s
     const timer = setTimeout(() => setShowSplash(false), 2000);
 
-    // Check for updates
+    // check for new version
     checkForUpdate();
 
     return () => clearTimeout(timer);
@@ -207,11 +201,12 @@ function AppContent() {
 
       if (data.latestVersion && compareSemver(data.latestVersion, APP_VERSION) > 0) {
         setUpdateInfo(data);
-        // Show update modal after splash
+        setUpdateInfo(data);
+        // show update if available
         setTimeout(() => setShowUpdate(true), 2500);
       }
     } catch (err) {
-      // Silent fail — don't block user if version check fails
+      // ignore errors during background check
       console.log('Update check failed:', err.message);
     }
   };

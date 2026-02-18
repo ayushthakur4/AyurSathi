@@ -100,7 +100,7 @@ export default function HomeScreen({ navigation }) {
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.scroll} keyboardShouldPersistTaps="handled">
 
-        {/* ═══ Header ═══ */}
+        {/* header section */}
         <Animated.View style={[s.header, { opacity: fadeAnim }]}>
           <View>
             <View style={s.greetRow}>
@@ -121,9 +121,9 @@ export default function HomeScreen({ navigation }) {
           </View>
         </Animated.View>
 
-        {/* ═══ AI Search Hero ═══ */}
+        {/* ai search area */}
         <View style={s.searchHero}>
-          {/* AI Badge */}
+          {/* ai label */}
           <View style={s.aiBadge}>
             <Ionicons name="sparkles" size={14} color="#FFF" />
             <Text style={s.aiBadgeText}>AI-Powered Ayurvedic Search</Text>
@@ -132,7 +132,7 @@ export default function HomeScreen({ navigation }) {
           <Text style={s.searchTitle}>What's troubling you?</Text>
           <Text style={s.searchSub}>Describe your symptoms and our AI will find personalized Ayurvedic remedies, yoga, and lifestyle tips.</Text>
 
-          {/* Big Search Input */}
+          {/* main search box */}
           <View style={[s.searchInputWrap, query.length > 0 && s.searchInputActive]}>
             <Ionicons name="search" size={20} color={query.length > 0 ? theme.primary : theme.text.subtext} />
             <TextInput
@@ -153,7 +153,7 @@ export default function HomeScreen({ navigation }) {
             )}
           </View>
 
-          {/* Big CTA Button */}
+          {/* search button */}
           <TouchableOpacity
             style={[s.ctaBtn, (!query.trim() || loading) && { opacity: 0.4 }]}
             onPress={() => search()}
@@ -170,7 +170,7 @@ export default function HomeScreen({ navigation }) {
             )}
           </TouchableOpacity>
 
-          {/* Quick Suggestions */}
+          {/* suggestion chips */}
           <View style={s.suggestRow}>
             <Text style={s.suggestLabel}>Try:</Text>
             {['Headache', 'Stress', 'Cold'].map(q => (
@@ -181,7 +181,7 @@ export default function HomeScreen({ navigation }) {
           </View>
         </View>
 
-        {/* ═══ Quick Heal ═══ */}
+        {/* quick fix list */}
         <SectionLabel label="Quick Heal" theme={theme} s={s} />
         <View style={s.iosGroup}>
           {AILMENTS.map((a, i) => (
@@ -198,7 +198,7 @@ export default function HomeScreen({ navigation }) {
           ))}
         </View>
 
-        {/* ═══ Daily Tip ═══ */}
+        {/* daily wellness tip */}
         <SectionLabel label="Daily Wellness" theme={theme} s={s} />
         <View style={s.iosGroup}>
           <View style={s.tipRow}>
@@ -215,7 +215,7 @@ export default function HomeScreen({ navigation }) {
           </View>
         </View>
 
-        {/* ═══ Know Your Dosha ═══ */}
+        {/* dosha information */}
         <SectionLabel label="Know Your Dosha" theme={theme} s={s} />
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -20 }} contentContainerStyle={{ paddingHorizontal: 20 }}>
           {DOSHAS.map((d) => (
@@ -234,7 +234,7 @@ export default function HomeScreen({ navigation }) {
           ))}
         </ScrollView>
 
-        {/* ═══ How It Works ═══ */}
+        {/* explanation steps */}
         <SectionLabel label="How It Works" theme={theme} s={s} />
         <View style={s.iosGroup}>
           {[
@@ -254,7 +254,7 @@ export default function HomeScreen({ navigation }) {
           ))}
         </View>
 
-        {/* ═══ Disclaimer ═══ */}
+        {/* medical disclaimer */}
         <View style={s.disclaimer}>
           <Ionicons name="shield-checkmark-outline" size={14} color={theme.warning} />
           <Text style={s.disclaimerText}>
@@ -262,7 +262,7 @@ export default function HomeScreen({ navigation }) {
           </Text>
         </View>
 
-        {/* ═══ Footer ═══ */}
+        {/* footer */}
         <View style={s.footer}>
           <Text style={s.footerText}>Made with ❤️ by Ayush Thakur</Text>
         </View>
@@ -280,7 +280,7 @@ const mk = (t) => StyleSheet.create({
   root: { flex: 1, backgroundColor: t.background.secondary },
   scroll: { paddingHorizontal: 20, paddingBottom: 30 },
 
-  // Header — iOS large title style
+  // header style
   header: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start',
     paddingTop: Platform.OS === 'ios' ? 64 : 48, marginBottom: 16,
@@ -290,7 +290,7 @@ const mk = (t) => StyleSheet.create({
   largeTitle: { fontSize: 34, fontWeight: '800', color: t.text.header, letterSpacing: 0.4 },
   avatar: { width: 40, height: 40, borderRadius: 20, marginTop: 4, backgroundColor: t.background.tertiary },
 
-  // AI Search Hero
+  // ai search card
   searchHero: {
     backgroundColor: '#FFFFFF', borderRadius: 20, padding: 22, marginBottom: 8,
     ...Platform.select({
@@ -327,7 +327,7 @@ const mk = (t) => StyleSheet.create({
   },
   suggestText: { fontSize: 13, color: t.primary, fontWeight: '600' },
 
-  // Section Label — iOS grouped table header
+  // section headers
   sectionLabel: {
     fontSize: 13, fontWeight: '600', color: t.text.subtext,
     textTransform: 'uppercase', letterSpacing: 0.5,
@@ -343,7 +343,7 @@ const mk = (t) => StyleSheet.create({
     }),
   },
 
-  // List Row
+  // list item style
   listRow: {
     flexDirection: 'row', alignItems: 'center', paddingVertical: 13, paddingHorizontal: 16,
   },
@@ -353,7 +353,7 @@ const mk = (t) => StyleSheet.create({
   listEmoji: { fontSize: 22, marginRight: 14, width: 28, textAlign: 'center' },
   listLabel: { flex: 1, fontSize: 17, color: t.text.header },
 
-  // Tip
+  // wellness tip style
   tipRow: { flexDirection: 'row', padding: 16, alignItems: 'flex-start' },
   tipBody: { flex: 1, marginLeft: 14 },
   tipTag: { fontSize: 11, fontWeight: '600', color: t.primary, textTransform: 'uppercase', letterSpacing: 0.3, marginBottom: 4 },
@@ -362,7 +362,7 @@ const mk = (t) => StyleSheet.create({
   dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: t.background.tertiary },
   dotOn: { width: 20, backgroundColor: t.primary, borderRadius: 3 },
 
-  // Dosha Cards
+  // dosha card style
   doshaCard: {
     width: 150, marginRight: 10, borderRadius: 16, padding: 16,
     backgroundColor: '#FFFFFF',
@@ -378,7 +378,7 @@ const mk = (t) => StyleSheet.create({
   traitDot: { width: 5, height: 5, borderRadius: 3, marginRight: 8 },
   traitText: { fontSize: 13, color: t.text.body },
 
-  // Steps
+  // step by step guide
   stepRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 14, paddingHorizontal: 16 },
   stepBadge: { width: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center', marginRight: 14 },
   stepNum: { color: '#FFF', fontWeight: '700', fontSize: 13 },
@@ -386,14 +386,14 @@ const mk = (t) => StyleSheet.create({
   stepTitle: { fontSize: 17, fontWeight: '600', color: t.text.header },
   stepSub: { fontSize: 13, color: t.text.subtext, marginTop: 1 },
 
-  // Disclaimer
+  // disclaimer text
   disclaimer: {
     flexDirection: 'row', alignItems: 'flex-start', gap: 8,
     marginTop: 28, paddingHorizontal: 4,
   },
   disclaimerText: { flex: 1, fontSize: 12, color: t.text.subtext, lineHeight: 17 },
 
-  // Footer
+  // footer style
   footer: { alignItems: 'center', marginTop: 24, paddingBottom: 10 },
   footerText: { fontSize: 12, color: t.text.subtext },
 });

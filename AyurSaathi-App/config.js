@@ -1,28 +1,24 @@
 import { Platform } from 'react-native';
 
-// ============================================================
-// DEPLOYMENT CONFIG
-// ============================================================
-// After deploying to Render, replace this URL with your actual
-// Render service URL (e.g. https://ayursaathi-backend.onrender.com)
+// backend url for production
 const PRODUCTION_URL = 'https://ayursathi.onrender.com/api/remedies';
 
-// For local development, set USE_LOCAL=true and update LOCAL_IP
-const USE_LOCAL = false; // Set to true for local development
+// set to true for local testing
+const USE_LOCAL = false;
 const LOCAL_IP = '192.168.137.146';
 
 const getApiUrl = () => {
     if (USE_LOCAL && __DEV__) {
-        // Use local backend (only for local dev/debugging)
+        // use local backend
         return `http://${LOCAL_IP}:5000/api/remedies`;
     }
-    // Use cloud backend — works on ANY device, ANY network
+    // use cloud backend
     return PRODUCTION_URL;
 };
 
 export const API_URL = getApiUrl();
 
-// Version check endpoint
+// api to check app version
 const getVersionUrl = () => {
     if (USE_LOCAL && __DEV__) {
         return `http://${LOCAL_IP}:5000/api/version`;
