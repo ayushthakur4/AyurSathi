@@ -7,6 +7,7 @@ import RecipeScreen from './screens/RecipeScreen';
 import YogaDetailScreen from './screens/YogaDetailScreen';
 import SettingsScreen from './screens/SettingsScreen';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
+import { LanguageProvider } from './context/LanguageContext';
 import {
   View, Text, Image, Animated, Modal, TouchableOpacity,
   StyleSheet, Linking, Platform, ScrollView,
@@ -250,7 +251,9 @@ function AppContent() {
 export default function App() {
   return (
     <ThemeProvider>
-      <AppContent />
+      <LanguageProvider>
+        <AppContent />
+      </LanguageProvider>
     </ThemeProvider>
   );
 }

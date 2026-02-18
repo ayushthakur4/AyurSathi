@@ -150,14 +150,27 @@ const MOCK_RESPONSES = {
 // Helper: delay for retry
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const generateAIResponse = async (disease, retries = 3) => {
+// Language name mapping for AI prompt
+const LANG_NAMES = {
+  en: 'English', hi: 'Hindi', bn: 'Bengali', te: 'Telugu', ta: 'Tamil',
+  mr: 'Marathi', gu: 'Gujarati', kn: 'Kannada', ml: 'Malayalam',
+  pa: 'Punjabi', or: 'Odia', ur: 'Urdu', as: 'Assamese', sa: 'Sanskrit',
+};
+
+const generateAIResponse = async (disease, lang = 'en', retries = 3) => {
   const model = genAI.getGenerativeModel({
     model: "gemini-2.5-flash",
     generationConfig: { responseMimeType: "application/json" },
   });
-  console.log("Generating AI response using model: gemini-2.5-flash");
+  const langName = LANG_NAMES[lang] || 'English';
+  console.log(`Generating AI response in ${langName} using model: gemini-2.5-flash`);
+
+  const langInstruction = lang !== 'en'
+    ? `IMPORTANT: Write ALL text values in ${langName} script/language. Only keep JSON keys, imageKeyword, and youtubeSearchQuery in English.`
+    : '';
 
   const prompt = `Act as an Ayurvedic expert. Provide a JSON response for condition: "${disease}".
+${langInstruction}
 Schema:
 {
   "diseaseName": "${disease}",
@@ -915,25 +928,28 @@ const FALLBACK_MOCK_RESPONSES = {
 router.get("/:disease", async (req, res) => {
   try {
     const disease = req.params.disease.toLowerCase().trim();
-    console.log("Searching for:", disease);
+    const lang = (req.query.lang || 'en').toLowerCase().trim();
+    console.log(`Searching for: ${disease} (lang: ${lang})`);
+    const cacheKey = `${disease}_${lang}`;
 
     // 1. Check in-memory cache first (instant)
-    if (remediesCache[disease]) {
+    if (remediesCache[cacheKey]) {
       console.log("Found in cache");
-      return res.json(remediesCache[disease]);
+      return res.json(remediesCache[cacheKey]);
     }
 
-    // 2. Check MongoDB (with error handling)
-    try {
-      let remedy = await Remedy.findOne({ diseaseName: disease });
-      if (remedy) {
-        console.log("Found in MongoDB");
-        remediesCache[disease] = remedy; // cache it
-        return res.json(remedy);
+    // 2. Check MongoDB (with error handling) — only for English (cached results are in English)
+    if (lang === 'en') {
+      try {
+        let remedy = await Remedy.findOne({ diseaseName: disease });
+        if (remedy) {
+          console.log("Found in MongoDB");
+          remediesCache[cacheKey] = remedy;
+          return res.json(remedy);
+        }
+      } catch (dbError) {
+        console.warn("MongoDB read failed (skipping):", dbError.message);
       }
-    } catch (dbError) {
-      console.warn("MongoDB read failed (skipping):", dbError.message);
-      // Continue to AI generation if DB fails
     }
 
     // 3. Try Gemini AI FIRST (primary source for all diseases)
@@ -942,8 +958,8 @@ router.get("/:disease", async (req, res) => {
       process.env.GEMINI_API_KEY !== "your_gemini_api_key_here"
     ) {
       try {
-        console.log("Querying Gemini AI for:", disease);
-        const aiResponse = await generateAIResponse(disease);
+        console.log(`Querying Gemini AI for: ${disease} (lang: ${lang})`);
+        const aiResponse = await generateAIResponse(disease, lang);
         aiResponse.diseaseName = disease;
 
         // Save to MongoDB for future use - NON-BLOCKING
@@ -961,7 +977,7 @@ router.get("/:disease", async (req, res) => {
         })();
 
         // Cache it
-        remediesCache[disease] = aiResponse;
+        remediesCache[cacheKey] = aiResponse;
 
         return res.json(aiResponse);
       } catch (aiError) {

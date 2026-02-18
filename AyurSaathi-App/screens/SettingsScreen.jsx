@@ -10,6 +10,7 @@ import * as Updates from 'expo-updates';
 import Constants from 'expo-constants';
 import { StatusBar } from 'expo-status-bar';
 import { useTheme } from '../context/ThemeContext';
+import { useLanguage } from '../context/LanguageContext';
 import { VERSION_API_URL } from '../config';
 
 const APP_VERSION = Constants.expoConfig?.version || '1.0.0';
@@ -20,7 +21,9 @@ export default function SettingsScreen({ navigation }) {
 
     const [checking, setChecking] = useState(false);
     const [downloading, setDownloading] = useState(false);
-    const [updateStatus, setUpdateStatus] = useState(null); // null | 'latest' | 'available' | 'downloaded'
+    const [updateStatus, setUpdateStatus] = useState(null);
+    const [showLangs, setShowLangs] = useState(false);
+    const { language, setLanguage, langName, LANGUAGES } = useLanguage();
 
     const checkForUpdate = useCallback(async () => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -182,6 +185,44 @@ export default function SettingsScreen({ navigation }) {
                     )}
                 </View>
 
+                {/* ═══ LANGUAGE SECTION ═══ */}
+                <Text style={s.secLabel}>LANGUAGE</Text>
+                <View style={s.group}>
+                    <TouchableOpacity
+                        style={s.langCurrentRow}
+                        onPress={() => { Haptics.selectionAsync(); setShowLangs(p => !p); }}
+                        activeOpacity={0.5}
+                    >
+                        <View style={[s.settingsIcon, { backgroundColor: '#FF9500' }]}>
+                            <Ionicons name="language-outline" size={16} color="#FFF" />
+                        </View>
+                        <Text style={s.settingsLabel}>App Language</Text>
+                        <Text style={s.langCurrent}>{langName}</Text>
+                        <Ionicons name={showLangs ? 'chevron-up' : 'chevron-down'} size={16} color="#C7C7CC" />
+                    </TouchableOpacity>
+
+                    {showLangs && LANGUAGES.map((lang, i) => (
+                        <TouchableOpacity
+                            key={lang.code}
+                            style={[s.langRow, i < LANGUAGES.length - 1 && s.settingsRowBorder]}
+                            onPress={() => {
+                                Haptics.selectionAsync();
+                                setLanguage(lang.code);
+                            }}
+                            activeOpacity={0.5}
+                        >
+                            <Text style={s.langFlag}>{lang.flag}</Text>
+                            <View style={s.langBody}>
+                                <Text style={s.langName}>{lang.native}</Text>
+                                <Text style={s.langSub}>{lang.label}</Text>
+                            </View>
+                            {language === lang.code && (
+                                <Ionicons name="checkmark-circle" size={22} color="#007AFF" />
+                            )}
+                        </TouchableOpacity>
+                    ))}
+                </View>
+
                 {/* ═══ GENERAL SECTION ═══ */}
                 <Text style={s.secLabel}>GENERAL</Text>
                 <View style={s.group}>
@@ -322,4 +363,18 @@ const mk = (t) => StyleSheet.create({
     footer: { alignItems: 'center', marginTop: 30, paddingBottom: 10 },
     footerText: { fontSize: 12, color: t.text.subtext },
     footerVersion: { fontSize: 11, color: t.text.subtext + '80', marginTop: 4 },
+
+    // Language Picker
+    langCurrentRow: {
+        flexDirection: 'row', alignItems: 'center', paddingVertical: 13, paddingHorizontal: 16,
+        borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.separator,
+    },
+    langCurrent: { fontSize: 15, color: t.text.subtext, marginRight: 6, fontWeight: '500' },
+    langRow: {
+        flexDirection: 'row', alignItems: 'center', paddingVertical: 12, paddingHorizontal: 16,
+    },
+    langFlag: { fontSize: 20, marginRight: 12 },
+    langBody: { flex: 1 },
+    langName: { fontSize: 16, fontWeight: '500', color: t.text.header },
+    langSub: { fontSize: 12, color: t.text.subtext, marginTop: 1 },
 });

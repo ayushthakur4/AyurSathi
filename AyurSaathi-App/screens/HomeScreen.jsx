@@ -11,6 +11,7 @@ import axios from 'axios';
 import { StatusBar } from 'expo-status-bar';
 import { API_URL } from '../config';
 import { useTheme } from '../context/ThemeContext';
+import { useLanguage } from '../context/LanguageContext';
 
 const { width } = Dimensions.get('window');
 
@@ -52,6 +53,7 @@ const DOSHAS = [
 
 export default function HomeScreen({ navigation }) {
   const { theme } = useTheme();
+  const { language, strings } = useLanguage();
   const s = useMemo(() => mk(theme), [theme]);
   const greeting = useMemo(() => getGreeting(), []);
 
@@ -77,7 +79,7 @@ export default function HomeScreen({ navigation }) {
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setLoading(true);
     try {
-      const res = await axios.get(`${API_URL}/${encodeURIComponent(val)}`, { timeout: 45000 });
+      const res = await axios.get(`${API_URL}/${encodeURIComponent(val)}`, { params: { lang: language }, timeout: 45000 });
       navigation.navigate('Results', { remedy: res.data });
     } catch (err) {
       let msg = 'Something went wrong. Please try again.';
