@@ -5,6 +5,7 @@ import HomeScreen from './screens/HomeScreen';
 import ResultsScreen from './screens/ResultsScreen';
 import RecipeScreen from './screens/RecipeScreen';
 import YogaDetailScreen from './screens/YogaDetailScreen';
+import SettingsScreen from './screens/SettingsScreen';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import {
   View, Text, Image, Animated, Modal, TouchableOpacity,
@@ -233,6 +234,7 @@ function AppContent() {
           <Stack.Screen name="Results" component={ResultsScreen} options={{ headerShown: false }} />
           <Stack.Screen name="Recipe" component={RecipeScreen} options={{ headerShown: false }} />
           <Stack.Screen name="YogaDetail" component={YogaDetailScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="Settings" component={SettingsScreen} options={{ headerShown: false }} />
         </Stack.Navigator>
       </NavigationContainer>
 

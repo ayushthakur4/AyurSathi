@@ -107,7 +107,16 @@ export default function HomeScreen({ navigation }) {
             </View>
             <Text style={s.largeTitle}>AyurSathi</Text>
           </View>
-          <Image source={require('../assets/icon.png')} style={s.avatar} />
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('Settings')}
+              style={{ width: 38, height: 38, borderRadius: 19, backgroundColor: theme.background.tertiary, alignItems: 'center', justifyContent: 'center' }}
+              activeOpacity={0.6}
+            >
+              <Ionicons name="settings-outline" size={20} color={theme.text.subtext} />
+            </TouchableOpacity>
+            <Image source={require('../assets/icon.png')} style={s.avatar} />
+          </View>
         </Animated.View>
 
         {/* ═══ AI Search Hero ═══ */}
