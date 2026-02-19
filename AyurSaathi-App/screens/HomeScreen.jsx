@@ -216,7 +216,12 @@ export default function HomeScreen({ navigation }) {
         </View>
 
         {/* dosha information */}
-        <SectionLabel label="Know Your Dosha" theme={theme} s={s} />
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingRight: 4 }}>
+          <SectionLabel label="Know Your Dosha" theme={theme} s={s} />
+          <TouchableOpacity onPress={() => navigation.navigate('PrakritiTest')} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+            <Text style={{ fontSize: 13, fontWeight: '600', color: theme.primary, marginTop: 20 }}>Find My Type &rarr;</Text>
+          </TouchableOpacity>
+        </View>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -20 }} contentContainerStyle={{ paddingHorizontal: 20 }}>
           {DOSHAS.map((d) => (
             <View key={d.name} style={s.doshaCard}>

@@ -6,6 +6,7 @@ import ResultsScreen from './screens/ResultsScreen';
 import RecipeScreen from './screens/RecipeScreen';
 import YogaDetailScreen from './screens/YogaDetailScreen';
 import SettingsScreen from './screens/SettingsScreen';
+import PrakritiTestScreen from './screens/PrakritiTestScreen';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import { LanguageProvider } from './context/LanguageContext';
 import {
@@ -231,6 +232,7 @@ function AppContent() {
           <Stack.Screen name="Recipe" component={RecipeScreen} options={{ headerShown: false }} />
           <Stack.Screen name="YogaDetail" component={YogaDetailScreen} options={{ headerShown: false }} />
           <Stack.Screen name="Settings" component={SettingsScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="PrakritiTest" component={PrakritiTestScreen} options={{ headerShown: false }} />
         </Stack.Navigator>
       </NavigationContainer>
 
