@@ -202,7 +202,6 @@ function AppContent() {
 
       if (data.latestVersion && compareSemver(data.latestVersion, APP_VERSION) > 0) {
         setUpdateInfo(data);
-        setUpdateInfo(data);
         // show update if available
         setTimeout(() => setShowUpdate(true), 2500);
       }
