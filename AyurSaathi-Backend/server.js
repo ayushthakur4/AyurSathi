@@ -53,9 +53,10 @@ app.get("/", (req, res) => {
 app.get("/api/version", (req, res) => {
   res.json({
     latestVersion: "1.1.0",
-    latestVersion: "1.1.0",
+    latestVersion: "1.2.0",
     minVersion: "1.0.0",
     releaseNotes: [
+      "🌿 Know Your Bio-Energy: New Prakriti (Dosha) Analysis feature!",
       "✨ Brand new Apple-inspired UI",
       "🤖 Faster AI-powered search",
       "🧘 Improved yoga detail screens",
